@@ -8,12 +8,15 @@ const viewer = {
 }
 
 export default class WordExpressDatabase{
-  constructor(connection){
-    this.connection = connection;
+  constructor(connectionDetails){
+    this.connectionDetails = connectionDetails;
+    this.connection = this.connect(connectionDetails);
+    this.queries = this.getQueries();
+    this.models = this.getModels();
   }
 
   connect(){
-    const { name, username, password, host} = this.connection;
+    const { name, username, password, host} = this.connectionDetails;
     const Conn = new Sequelize(
       name,
       username,
@@ -31,51 +34,53 @@ export default class WordExpressDatabase{
     return Conn;
   }
 
+  getModels(){
+    const prefix = 'wp_';
+    const Conn = this.connection;
+
+    return {
+      Post: Conn.define(prefix + 'posts', {
+        id: { type: Sequelize.INTEGER, primaryKey: true},
+        post_author: { type: Sequelize.INTEGER },
+        post_title: { type: Sequelize.STRING },
+        post_content: { type: Sequelize.STRING },
+        post_excerpt: { type: Sequelize.STRING },
+        post_status:{ type: Sequelize.STRING },
+        post_type:{ type: Sequelize.STRING },
+        post_name:{ type: Sequelize.STRING},
+        post_parent: { type: Sequelize.INTEGER},
+        menu_order: { type: Sequelize.INTEGER}
+      }),
+      Postmeta: Conn.define(prefix + 'postmeta', {
+        meta_id: { type: Sequelize.INTEGER, primaryKey: true, field: 'meta_id' },
+        post_id: { type: Sequelize.INTEGER },
+        meta_key: { type: Sequelize.STRING },
+        meta_value: { type: Sequelize.INTEGER },
+      }),
+      Terms: Conn.define(prefix + 'terms', {
+        term_id: { type: Sequelize.INTEGER, primaryKey: true },
+        name: { type: Sequelize.STRING },
+        slug: { type: Sequelize.STRING },
+        term_group: { type: Sequelize.INTEGER },
+      }),
+      TermRelationships: Conn.define(prefix + 'term_relationships', {
+        object_id: { type: Sequelize.INTEGER, primaryKey: true },
+        term_taxonomy_id: { type: Sequelize.INTEGER },
+        term_order: { type: Sequelize.INTEGER },
+      }),
+      TermTaxonomy: Conn.define(prefix + 'term_taxonomy', {
+        term_taxonomy_id: { type: Sequelize.INTEGER, primaryKey: true },
+        term_id: { type: Sequelize.INTEGER },
+        taxonomy: { type: Sequelize.STRING },
+        parent: { type: Sequelize.INTEGER },
+        count: { type: Sequelize.INTEGER },
+      })
+    }
+  }
+
   getQueries(){
-    const { amazonS3, uploadDirectory } = this.connection;
-    const Conn = this.connect(this.connetion);
-    const prefix = "wp_";
-
-    const Post = Conn.define(prefix + 'posts', {
-      id: { type: Sequelize.INTEGER, primaryKey: true},
-      post_author: { type: Sequelize.INTEGER },
-      post_title: { type: Sequelize.STRING },
-      post_content: { type: Sequelize.STRING },
-      post_excerpt: { type: Sequelize.STRING },
-      post_status:{ type: Sequelize.STRING },
-      post_type:{ type: Sequelize.STRING },
-      post_name:{ type: Sequelize.STRING},
-      post_parent: { type: Sequelize.INTEGER},
-      menu_order: { type: Sequelize.INTEGER}
-    });
-
-    const Postmeta = Conn.define(prefix + 'postmeta', {
-      meta_id: { type: Sequelize.INTEGER, primaryKey: true, field: 'meta_id' },
-      post_id: { type: Sequelize.INTEGER },
-      meta_key: { type: Sequelize.STRING },
-      meta_value: { type: Sequelize.INTEGER },
-    });
-
-    const Terms = Conn.define(prefix + 'terms', {
-      term_id: { type: Sequelize.INTEGER, primaryKey: true },
-      name: { type: Sequelize.STRING },
-      slug: { type: Sequelize.STRING },
-      term_group: { type: Sequelize.INTEGER },
-    });
-
-    const TermRelationships = Conn.define(prefix + 'term_relationships', {
-      object_id: { type: Sequelize.INTEGER, primaryKey: true },
-      term_taxonomy_id: { type: Sequelize.INTEGER },
-      term_order: { type: Sequelize.INTEGER },
-    });
-
-    const TermTaxonomy = Conn.define(prefix + 'term_taxonomy', {
-      term_taxonomy_id: { type: Sequelize.INTEGER, primaryKey: true },
-      term_id: { type: Sequelize.INTEGER },
-      taxonomy: { type: Sequelize.STRING },
-      parent: { type: Sequelize.INTEGER },
-      count: { type: Sequelize.INTEGER },
-    });
+    const { amazonS3, uploadDirectory } = this.connectionDetails;
+    const { Post, Postmeta, Terms, TermRelationships, TermTaxonomy  } = this.getModels();
 
     Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'});
     TermRelationships.belongsTo(Terms, {foreignKey: 'term_taxonomy_id'});
@@ -87,8 +92,6 @@ export default class WordExpressDatabase{
 
     Post.hasMany(Postmeta, {foreignKey: 'post_id'});
     Postmeta.belongsTo(Post, {foreignKey: 'post_id'});
-
-    Conn.sync();
 
     return {
       getViewer(){
@@ -177,7 +180,7 @@ export default class WordExpressDatabase{
         })
       },
       getMenu(name){
-        return Conn.models[prefix + 'terms'].findOne({
+        return Terms.findOne({
           where: {
             slug: name
           },
