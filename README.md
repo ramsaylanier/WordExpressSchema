@@ -8,7 +8,8 @@ For a full example, check out the repo for [WordExpress.io](https://github.com/r
 npm install --save-dev wordexpress-schema
 ```
 
-##Usage
+##WordExpressDatabase
+The first part of WordExpress Schema is **WordExpressDatabase**. This class provides an easy connection to your WordPress database using a  Sequelize connection.
 
 Below is the basic implementation:
 ```
@@ -46,11 +47,10 @@ const connectionDetails = {
 
 const Database = new WordExpressDatabase(connectionDetails);
 const ConnQueries = Database.queries;
-
 export default ConnQueries;
 ```
 
-##Connection Settings
+###Connection Settings
 
 In the above example, **WordExpressDatabase** is passed a connectionDetails object that contains some WordPress database settings. Name, username, password, and host are all self-explanatory. 
 
@@ -59,47 +59,89 @@ WordExpress will work with Amazon S3; passing in a truthy value for amazonS3 wil
 Lastly, you can modify the wordpress database prefix. Some people don't use the default "wp_" prefix for various reasons. If that's you, I got your back. 
 
 
-##The Database Object
+###The Database Class
 
-The Database object returned above contains the connectionDetails, the actual Sequelize connection, the database queries, and the database models. Really, all you need for GraphQL setup are the queries; however, if you'd like to extend queries with your own, the Database Models are exposed. 
+The Database class above contains the connectionDetails, the actual Sequelize connection, the database queries, and the database models. Really, all you need for GraphQL setup are the queries; however, if you'd like to extend queries with your own, the Database Models are exposed. 
 
-##The Included Queries
+####The Models
+Here are the models and their definitions.  As you can see, for the Post model, not every column in the wp_posts table is included. I've included the most relevant columns; however because the Database class exposes the models, you can extend them to your liking.
+
+```
+Post: Conn.define(prefix + 'posts', {
+  id: { type: Sequelize.INTEGER, primaryKey: true},
+  post_author: { type: Sequelize.INTEGER },
+  post_title: { type: Sequelize.STRING },
+  post_content: { type: Sequelize.STRING },
+  post_excerpt: { type: Sequelize.STRING },
+  post_status:{ type: Sequelize.STRING },
+  post_type:{ type: Sequelize.STRING },
+  post_name:{ type: Sequelize.STRING},
+  post_parent: { type: Sequelize.INTEGER},
+  menu_order: { type: Sequelize.INTEGER}
+}),
+Postmeta: Conn.define(prefix + 'postmeta', {
+  meta_id: { type: Sequelize.INTEGER, primaryKey: true, field: 'meta_id' },
+  post_id: { type: Sequelize.INTEGER },
+  meta_key: { type: Sequelize.STRING },
+  meta_value: { type: Sequelize.INTEGER },
+}),
+Terms: Conn.define(prefix + 'terms', {
+  term_id: { type: Sequelize.INTEGER, primaryKey: true },
+  name: { type: Sequelize.STRING },
+  slug: { type: Sequelize.STRING },
+  term_group: { type: Sequelize.INTEGER },
+}),
+TermRelationships: Conn.define(prefix + 'term_relationships', {
+  object_id: { type: Sequelize.INTEGER, primaryKey: true },
+  term_taxonomy_id: { type: Sequelize.INTEGER },
+  term_order: { type: Sequelize.INTEGER },
+}),
+TermTaxonomy: Conn.define(prefix + 'term_taxonomy', {
+  term_taxonomy_id: { type: Sequelize.INTEGER, primaryKey: true },
+  term_id: { type: Sequelize.INTEGER },
+  taxonomy: { type: Sequelize.STRING },
+  parent: { type: Sequelize.INTEGER },
+  count: { type: Sequelize.INTEGER },
+})
+```
+
+####The Queries
 
 In the above example, ConnQueries will give you the following:
 
-###getViewer()
+**getViewer()**
 
 Necessary because GraphQL doesn't currently allow for nodes on the root query. It simply returns a User object with id:1 and name:Anonymous
 
-###getPosts(args)
+**getPosts(args)**
 
 args is an object; however, the only acceptable key in args is ```post_type```. This finds all published posts by post type. Returns a promised array.
 
-###getPostById(postId)
+**getPostById(postId)**
 
 Accepts a post id and returns the corresponding post.
 
-###getPostByName(name)
+**getPostByName(name)**
 
 Accepts a post name (AKA slug) and returns it. The post must be published.
 
-###getPostThumbnail(postId)
+**getPostThumbnail(postId)**
 
 Accepts a post id and returns the thumbnail image. In the **connectionDetails** object above you'll notice that there is a setting for AmazonS3. Set to true if you want to use WordPress with AmazonS3.
 
-###getPostmeta(postId, keys)
+**getPostmeta(postId, keys)**
 
 Returns a posts' Postmeta. Keys is an array of valid meta_key values. See the below example for usage.
 
-###getPostMetaById(metaId)
+**getPostMetaById(metaId)**
 
 Returns a single Postmeta by id. Probably not very useful right now. Instead, you'll want to use getPostmeta();
 
-###getMenu(name)
+**getMenu(name)**
 
 Returns a menu and all of its menu items where the name argument is the slug of your menu.
 
-##Extending Queries
+####Extending Queries
 
 Extending the above example, it's possible to add your own queries (or even your own models). Here's an example:
 
@@ -122,7 +164,7 @@ ConnQueries.getCustomPosts = CustomPostsQuery;
 ...
 ```
 
-##Example Usage With GraphQL
+###Example Usage With GraphQL
 
 This example requires working knowledge of GraphQL. If you aren't familiar, [start by reading the GraphQL documentation](http://graphql.org/docs/getting-started/).
 
