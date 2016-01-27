@@ -32,7 +32,9 @@ Below is detailed documentation on using both.
   * [Example Usage with GraphQL](https://github.com/ramsaylanier/wordexpress-schema#example-usage-with-graphql)
   
 
-[Using WordExpressGraphQLSchema]
+* [Using WordExpressGraphQLSchema](https://github.com/ramsaylanier/wordexpress-schema#wordexpressgraphqlschema)
+
+   * [Example: Building A Landing Page component](https://github.com/ramsaylanier/wordexpress-schema#building-a-landing-page-component)
 
 
 ##WordExpressDatabase
