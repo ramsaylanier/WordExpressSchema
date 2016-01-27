@@ -8,6 +8,33 @@ For a full example, check out the repo for [WordExpress.io](https://github.com/r
 npm install --save-dev wordexpress-schema
 ```
 
+##Usage
+WordPress Schema exports two things: **WordExpressDatabase** and **WordExpressGraphQLSchema**. 
+
+*WordExpressDatabase* provides a connection to your database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. You can use the queries exposed in WordExpressDatabase to manually write your own GraphQL Schema, as you will see below. Or, you can use *WordExpressGraphQLSchema*.
+
+*WordExpressGraphQLSchema* is a GraphQL Schema based on the queries provided to it from WordExpressDatabase. With the schema, you can do things like Find Posts by post_type, get the Postmeta of a Post by the post_id, and so on.
+
+Below is detailed documentation on using both.
+
+* [Using WordExpress Database](https://github.com/ramsaylanier/wordexpress-schema/blob/master/README.md#wordexpressdatabase)
+
+  * [Connection Settings](https://github.com/ramsaylanier/wordexpress-schema#connection-settings)
+  
+  * [The Database Class](https://github.com/ramsaylanier/wordexpress-schema#the-database-class)
+  
+    * [The Models](https://github.com/ramsaylanier/wordexpress-schema#the-models)
+    
+    * [The Queries](https://github.com/ramsaylanier/wordexpress-schema#the-queries)
+    
+    * [Extending Queries](https://github.com/ramsaylanier/wordexpress-schema#extending-queries)
+    
+  * [Example Usage with GraphQL](https://github.com/ramsaylanier/wordexpress-schema#example-usage-with-graphql)
+  
+
+[Using WordExpressGraphQLSchema]
+
+
 ##WordExpressDatabase
 The first part of WordExpress Schema is **WordExpressDatabase**. This class provides an easy connection to your WordPress database using a  Sequelize connection.
 
@@ -246,3 +273,91 @@ export default WordExpressSchema;
 
 ```
 
+##WordExpressGraphQLSchema
+Instead of writing your own GraphQL schema, you can use *WordExpressGraphQLSchema*. To extend upon the earlier example, this is how it's implemented:
+
+```
+import { WordExpressDatabase, WordExpressGraphQLSchema } from 'wordexpress-schema';
+import { publicSettings, privateSettings } from '../settings/settings';
+
+const { name, username, password, host } = privateSettings.database;
+const { amazonS3, uploads } = publicSettings;
+
+const connectionDetails = {
+  name: name,
+  username: username,
+  password: password,
+  host: host,
+  amazonS3: amazonS3,
+  uploadDirectory: uploads
+}
+
+const Database = new WordExpressDatabase(connectionDetails);
+const ConnQueries = Database.queries;
+const Schema = WordExpressGraphQLSchema(ConnQueries, publicSettings);
+
+export default Schema;
+```
+
+The Schema that gets exported contains a Root query that has a viewer field. The viewer is of type GraphQLUser, which is a custom GraphQLObjectType that is defined by the package. GraphQLUser serves as the main fragment that will be queried from. This will make sense if you are at all familiar with GraphQL. If you arent, here are some practical examples of how to use the provided Schema.
+
+###Building a Landing Page Component
+In this example, I'm using Relay to query a fragment on User to find a page with the post_name(AKA slug) of "homepage". I'm getting the post_title, the post_content, and the thumbnail.
+
+```
+import React from 'react';
+import Relay from 'react-relay';
+import Page from './page.js';
+import PostContent from '../posts/PostContent';
+
+class LandingPage extends React.Component{
+
+	render(){
+		const { post_title, post_content, thumbnail} = this.props.viewer.page;
+		let bg = {
+			backgroundImage: "url('" + thumbnail + "')"
+		}
+
+		let heroClass = thumbnail ? "hero_thumbnail" : "hero"
+
+		return (
+			<Page>
+				<div styleName={heroClass} style={bg}>
+					<div styleName="wrapper tight">
+						<h1 styleName="title">WordExpress</h1>
+						<h4 styleName="subtitle">WordPress using Node, Express, and React.</h4>
+					</div>
+				</div>
+
+				<div styleName="content">
+					<div styleName="wrapper tight">
+						<PostContent post_content={post_content}/>
+					</div>
+				</div>
+			</Page>
+		)
+	}
+}
+
+export default Relay.createContainer(LandingPage, {
+  fragments: {
+    viewer: () => Relay.QL`
+      fragment on User {
+        page(post_name:"homepage"){
+					id,
+					post_title
+					post_content
+					thumbnail
+				},
+				settings{
+					id
+					uploads
+					amazonS3
+				}
+      }
+    `,
+  },
+});
+```
+
+This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress). 
