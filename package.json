@@ -1,6 +1,6 @@
 {
   "name": "wordexpress-schema",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A GraphQL Schema for WordPress",
   "files": [
     "lib"
@@ -37,9 +37,6 @@
     "babel-preset-stage-0": "^6.3.13",
     "graphql": "^0.4.14",
     "graphql-relay": "^0.3.6",
-    "lodash": "^4.0.1",
-    "php-unserialize": "0.0.1",
-    "rimraf": "^2.5.1",
-    "sequelize": "^3.18.0"
+    "rimraf": "^2.5.1"
   }
 }
