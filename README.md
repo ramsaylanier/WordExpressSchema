@@ -9,7 +9,7 @@ npm install --save-dev wordexpress-schema
 ```
 
 ##Usage
-WordPress Schema exports two things: **WordExpressDatabase** and **WordExpressGraphQLSchema**. 
+WordExpress Schema exports two things: **WordExpressDatabase** and **WordExpressGraphQLSchema**. 
 
 *WordExpressDatabase* provides a connection to your database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. You can use the queries exposed in WordExpressDatabase to manually write your own GraphQL Schema, as you will see below. Or, you can use *WordExpressGraphQLSchema*.
 
