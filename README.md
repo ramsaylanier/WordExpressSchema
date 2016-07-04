@@ -1,5 +1,5 @@
 # wordexpress-schema
-This package provides a connection to a WordPress MYSQL database using Sequelize, as well as a standard set of queries to use with GraphQL and ApolloStack. 
+This package is intended to be used with [Apollo Server](http://docs.apollostack.com/apollo-server/tools.html) to provide an easy way to setup a GraphQL server and connect it to your WordPress database. Note that Apollo Server is not a depenedecy of this package. An example of using this package with Apollo Server and Webpack is provided below.
 
 For a full example, check out the repo for [WordExpress.io](https://github.com/ramsaylanier/WordpressExpress), which was built using this package.
 
@@ -44,6 +44,8 @@ Below is detailed documentation on using both.
 * [Using WordExpress Definitions](#wordexpressdefinitions)
 
    * [Example: Building A Landing Page component](#building-a-landing-page-component)
+
+* [Using Definitions and Resolvers with Apollo Server](#using-definitions-and-resolvers-with-apollo-server)
 
 
 ##WordExpressDatabase
@@ -304,3 +306,36 @@ export default FrontPageWithData;
 ```
 
 This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress). 
+
+##Using Definitions and Resolvers with Apollo Server
+This example is from the [WordExpress repo](https://github.com/ramsaylanier/WordPressExpress/blob/master/dev.js), using Webpack. First, we import the Definitions and Resolvers from our ./schema/schema.js file. This file should look a lot like the end result of the example in the WordExpressDefinitions section, which exports the Connectors, Resolvers, and Definitions.
+
+After importing the Resolvers and Definitions, we pass them as arguments to ApolloServer. ApolloServer is Express middleware that provides a very easy way to set up a GraphQL server.
+
+```es6
+...
+import { apolloServer } from 'apollo-server';
+import { Definitions, Resolvers } from './schema/schema';
+import { privateSettings } from './settings/settings';
+
+const APP_PORT = 3000;
+const GRAPHQL_PORT = 8080;
+
+const graphQLServer = express();
+let app = express();
+
+graphQLServer.use('/', apolloServer({
+  graphiql: true,
+  pretty: true,
+  schema: Definitions,
+  resolvers: Resolvers
+}));
+
+graphQLServer.listen(GRAPHQL_PORT, () => console.log(
+  `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}`
+));
+
+...
+```
+
+
