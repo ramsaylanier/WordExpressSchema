@@ -1,2 +1,3 @@
 export WordExpressDatabase from './db';
-export WordExpressGraphQLSchema from './schema';
+export WordExpressResolvers from './resolvers';
+export WordExpressDefinitions from './definitions';

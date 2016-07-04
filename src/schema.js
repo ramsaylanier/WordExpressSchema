@@ -1,220 +1,71 @@
-import {
-  GraphQL,
-  GraphQLSchema,
-  GraphQLEnumType,
-  GraphQLBoolean,
-  GraphQLObjectType,
-  GraphQLID,
-  GraphQLString,
-  GraphQLInt,
-  GraphQLNonNull,
-  GraphQLList
-} from 'graphql';
+const Definitions = `
+  type Menu {
+    id: ID!
+    name: String
+    items: [MenuItem]
+  }
 
-import {
-  connectionArgs,
-  connectionDefinitions,
-  connectionFromPromisedArray,
-  globalIdField
-} from 'graphql-relay';
+  type MenuItem {
+    id: ID!
+    linkedId: Int
+    order: Int
+    navitem: Post
+    children: [MenuItem]
+  }
 
-function WordExpressGraphQLSchema(ConnQueries, publicSettings){
+  enum MetaType {
+    thumbnailID
+    attachedFile
+    reactLayout
+    amazonInfo
+  }
 
-  const GraphQLMenuItem = new GraphQLObjectType({
-    name: 'MenuItem',
-    fields: () => ({
-      id: { type: new GraphQLNonNull(GraphQLID) },
-      linkedId: { type: GraphQLInt },
-      order: { type: GraphQLInt },
-      navitem: {
-        type: GraphQLPost,
-        resolve: (root) => {
-          return ConnQueries.getPostById(root.linkedId)
-        }
-      },
-      children: {
-        type: new GraphQLList(GraphQLMenuItem),
-        resolve: (root) => {
-          return root.children
-        }
-      }
-    })
-  });
+  type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+  }
 
-  const GraphQLMenu = new GraphQLObjectType({
-    name: 'Menu',
-    fields: () => ({
-      id: { type: new GraphQLNonNull(GraphQLID) },
-      name: { type: GraphQLString },
-      items: {
-        type: new GraphQLList(GraphQLMenuItem)
-      }
-    })
-  });
+  type Post {
+    id: Int
+    post_title: String
+    post_content: String
+    post_excerpt: String
+    post_status: String
+    post_type: String
+    post_name: String
+    menu_order: Int
+    layout: Postmeta
+    thumbnail: String
+    post_meta(keys: [MetaType], after: String, first: Int, before: String, last: Int): Postmeta
+  }
 
-  const GraphQLMetaType = new GraphQLEnumType({
-    name: 'MetaType',
-    values: {
-      thumbnailID: {value: '_thumbnail_id'},
-      attachedFile: {value: '_wp_attached_file'},
-      reactLayout: {value: 'react_layout'},
-      amazonInfo: {value: 'amazonS3_info'}
-    }
-  })
+  type Postmeta {
+    id: Int
+    meta_id: Int
+    post_id: Int
+    meta_key: String
+    meta_value: String
+    connecting_post: Post
+  }
 
-  const GraphQLPostmeta = new GraphQLObjectType({
-    name: 'Postmeta',
-    fields: () => ({
-      id: {
-        type: new GraphQLNonNull(GraphQLID),
-        resolve(root){
-          return root.dataValues.meta_id;
-        }
-      },
-      meta_id: { type: GraphQLInt },
-      post_id: { type: GraphQLInt },
-      meta_key: { type: GraphQLString },
-      meta_value: { type: GraphQLString },
-      connecting_post: {
-        type: GraphQLPost,
-        resolve: (root) => {
-          return ConnQueries.getPostById(root.meta_value)
-        }
-      }
-    }),
-    interfaces: []
-  });
+  type Setting {
+    uploads: String
+    amazonS3: Boolean
+  }
 
-  const {
-    connectionType: PostmetaConnection,
-    edgeType: GraphQLPostmetaEdge,
-  } = connectionDefinitions({
-    name: 'Postmeta',
-    nodeType: GraphQLPostmeta
-  });
+  type Query {
+    settings: Setting
+    posts(post_type: String = "post", limit: Int, skip: Int): [Post]
+    menus(name: String): Menu
+    page(name: String): Post
+    postmeta(post_id: Int, after: String, first: Int, before: String, last: Int): Postmeta
+  }
 
-  const GraphQLPost = new GraphQLObjectType({
-    name: 'Post',
-    fields: () => ({
-      id: { type: new GraphQLNonNull(GraphQLID) },
-      post_title: { type: GraphQLString },
-      post_content: { type: GraphQLString },
-      post_excerpt: { type: GraphQLString },
-      post_status: { type: GraphQLString },
-      post_type: { type: GraphQLString },
-      post_name: { type: GraphQLString},
-      menu_order: { type: GraphQLInt},
-      thumbnail: {
-        type: GraphQLString,
-        resolve(root, args){
-          return ConnQueries.getPostThumbnail(root.id);
-        }
-      },
-      post_meta: {
-        type: PostmetaConnection,
-        args: {
-          keys: {
-            type: new GraphQLList(GraphQLMetaType)
-          },
-          ...connectionArgs,
-        },
-        resolve: (root, args ) => {
-          return connectionFromPromisedArray(ConnQueries.getPostmeta(root.id, args.keys), args);
-        }
-      }
-    })
-  });
+  schema {
+    query: Query
+  }
+`;
 
-  const {
-    connectionType: PostsConnection,
-    edgeType: GraphQLPostEdge,
-  } = connectionDefinitions({
-    name: 'Post',
-    nodeType: GraphQLPost
-  });
-
-  const GraphQLSetting = new GraphQLObjectType({
-    name: 'Setting',
-    fields: {
-      id: globalIdField("User"),
-      uploads: { type: GraphQLString },
-      amazonS3: { type: GraphQLBoolean }
-    }
-  });
-
-  const GraphQLUser = new GraphQLObjectType({
-    name: "User",
-    fields: {
-      id: {type: new GraphQLNonNull(GraphQLID)} ,
-      settings: {
-        type: GraphQLSetting,
-        resolve: ()=>{
-          return publicSettings
-        }
-      },
-      posts: {
-        type: PostsConnection,
-        args: {
-          post_type: {
-            type: GraphQLString,
-            defaultValue: 'post'
-          },
-          ...connectionArgs
-        },
-        resolve(root, args) {
-          return connectionFromPromisedArray( ConnQueries.getPosts(args), args );
-        }
-      },
-      page: {
-        type: GraphQLPost,
-        args:{
-          post_name:{ type: GraphQLString },
-        },
-        resolve(root, args){
-          return ConnQueries.getPostByName(args.post_name);
-        }
-      },
-      menus: {
-        type: GraphQLMenu,
-        args: {
-          name: { type: GraphQLString }
-        },
-        resolve(root, args) {
-          return ConnQueries.getMenu(args.name);
-        }
-      },
-      postmeta: {
-        type: PostmetaConnection,
-        args: {
-          post_id: {
-            type: GraphQLInt
-          },
-          ...connectionArgs
-        },
-        resolve(root, args){
-          return ConnQueries.getPostmeta(args.post_id)
-        }
-      }
-    }
-  })
-
-  const GraphQLRoot = new GraphQLObjectType({
-    name: 'Root',
-    fields: {
-      viewer: {
-        type: GraphQLUser,
-        resolve: () => {
-          return ConnQueries.getViewer();
-        }
-      }
-    }
-  });
-
-  const Schema = new GraphQLSchema({
-    query: GraphQLRoot
-  });
-
-  return Schema;
-}
-
-export default WordExpressGraphQLSchema;
+export default [Definitions];
