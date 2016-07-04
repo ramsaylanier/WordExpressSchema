@@ -15,10 +15,12 @@ npm install --save-dev wordexpress-schema
 
 ##Usage
 
-WordExpress Schema exports three things: **WordExpressDatabase**, **WordExpressResolvers**, and **WordExpressDefinitions**.  
-*WordExpressDatabase* provides a connection to your database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. These queries function as connectors and are used in the WordExpressResolvers resolving functions. 
+WordExpress Schema exports three things: **WordExpressDatabase**, **WordExpressResolvers**, and **WordExpressDefinitions**.
 
-**WordExpressResolvers** are a set of resolving functions used to resolve GraphQL queries. 
+
+*WordExpressDatabase* provides a connection to your database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. These queries function as connectors and are used in the WordExpressResolvers resolving functions.
+
+*WordExpressResolvers* are a set of resolving functions used to resolve GraphQL queries.
 
 *WordExpressDefinitions* is a GraphQL Schema based on the queries provided to it from WordExpressDatabase. With the schema, you can do things like Find Posts by post_type, get the Postmeta of a Post by the post_id, and so on.
 
