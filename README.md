@@ -308,7 +308,7 @@ export default FrontPageWithData;
 This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress). 
 
 ##Using Definitions and Resolvers with Apollo Server
-This example is from the [WordExpress repo](https://github.com/ramsaylanier/WordPressExpress/blob/master/dev.js), using Webpack. First, we import the Definitions and Resolvers from our ./schema/schema.js file. This file should look a lot like the end result of the example in the WordExpressDefinitions section, which exports the Connectors, Resolvers, and Definitions.
+This example is from the [WordExpress repo](https://github.com/ramsaylanier/WordPressExpress/blob/master/dev.js), using Webpack. First, we import the Definitions and Resolvers from our [schema.js file](https://github.com/ramsaylanier/WordPressExpress/blob/master/schema/schema.js). This file should look a lot like the end result of the example in the WordExpressDefinitions section, which exports the Connectors, Resolvers, and Definitions.
 
 After importing the Resolvers and Definitions, we pass them as arguments to ApolloServer. ApolloServer is Express middleware that provides a very easy way to set up a GraphQL server.
 
