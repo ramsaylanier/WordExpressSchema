@@ -1,19 +1,26 @@
 # wordexpress-schema
-This package provides a connection to a WordPress MYSQL database using Sequelize and provides a standard set of queries to use with GraphQL.
+This package provides a connection to a WordPress MYSQL database using Sequelize, as well as a standard set of queries to use with GraphQL and ApolloStack. 
 
 For a full example, check out the repo for [WordExpress.io](https://github.com/ramsaylanier/WordpressExpress), which was built using this package.
 
 ##Installation
+
+First, you must install and activate [WordExpress Companion WordPress Plugin](https://github.com/ramsaylanier/WordExpress-Plugin) in your WordPress build. This will populate some custom fields used for Page Layouts. If you don't want to use React Components for Page Layouts you can skip installing the plugin for now, but some more functionality will be added shortly so it's probably best to install it.
+
+Then, in your node application:
+
 ```
 npm install --save-dev wordexpress-schema
 ```
 
 ##Usage
-WordExpress Schema exports two things: **WordExpressDatabase** and **WordExpressGraphQLSchema**. 
 
-*WordExpressDatabase* provides a connection to your database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. You can use the queries exposed in WordExpressDatabase to manually write your own GraphQL Schema, as you will see below. Or, you can use *WordExpressGraphQLSchema*.
+WordExpress Schema exports three things: **WordExpressDatabase**, **WordExpressResolvers**, and **WordExpressDefinitions**.  
+*WordExpressDatabase* provides a connection to your database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. These queries function as connectors and are used in the WordExpressResolvers resolving functions. 
 
-*WordExpressGraphQLSchema* is a GraphQL Schema based on the queries provided to it from WordExpressDatabase. With the schema, you can do things like Find Posts by post_type, get the Postmeta of a Post by the post_id, and so on.
+**WordExpressResolvers** are a set of resolving functions used to resolve GraphQL queries. 
+
+*WordExpressDefinitions* is a GraphQL Schema based on the queries provided to it from WordExpressDatabase. With the schema, you can do things like Find Posts by post_type, get the Postmeta of a Post by the post_id, and so on.
 
 Below is detailed documentation on using both.
 
@@ -29,21 +36,21 @@ Below is detailed documentation on using both.
     
     * [Extending Queries](#extending-queries)
     
-  * [Example Usage with GraphQL](#example-usage-with-graphql)
-  
 
-* [Using WordExpressGraphQLSchema](#wordexpressgraphqlschema)
+* [Using WordExpress Resolvers](#wordexpressresolvers)  
+
+* [Using WordExpress Definitions](#wordexpressdefinitions)
 
    * [Example: Building A Landing Page component](#building-a-landing-page-component)
 
 
 ##WordExpressDatabase
-The first part of WordExpress Schema is **WordExpressDatabase**. This class provides an easy connection to your WordPress database using a  Sequelize connection.
+The first part of WordExpress Schema is **WordExpressDatabase**. This class provides an easy connection to your WordPress database using some connection settings, explained below.
 
 Below is the basic implementation:
-```
-import { WordExpressDatabase } from 'wordexpress-schema';
-import { publicSettings, privateSettings } from '../settings/settings';
+```es6
+import * as settings from '../settings/settings';
+import { WordExpressDefinitions, WordExpressDatabase, WordExpressResolvers } from 'wordexpress-schema';
 
 /*
   Example settings object:
@@ -62,26 +69,14 @@ import { publicSettings, privateSettings } from '../settings/settings';
   }
 */
 
-const { name, username, password, host } = privateSettings.database;
-const { amazonS3, uploads } = publicSettings;
-
-const connectionDetails = {
-  name: name,
-  username: username,
-  password: password,
-  host: host,
-  amazonS3: amazonS3,
-  uploadDirectory: uploads
-}
-
-const Database = new WordExpressDatabase(connectionDetails);
-const ConnQueries = Database.queries;
-export default ConnQueries;
+//returns WordExpressDatabase object that has provides connectors to the database;
+const Database = new WordExpressDatabase(settings);
+const Connectors = Database.connectors;
 ```
 
 ###Connection Settings
 
-In the above example, **WordExpressDatabase** is passed a connectionDetails object that contains some WordPress database settings. Name, username, password, and host are all self-explanatory. 
+In the above example, **WordExpressDatabase** is passed a settings object that contains some WordPress database settings. Name, username, password, and host are all self-explanatory. 
 
 WordExpress will work with Amazon S3; passing in a truthy value for amazonS3 will alter the query for getting Post Thumbnail images. If you are using S3, you just need the include the base path to your S3 bucket (which means you should exclude the wp-content/uploads/ part of the path). If you are hosting images on your own server, include the full path to the uploads folder.
 
@@ -95,7 +90,7 @@ The Database class above contains the connectionDetails, the actual Sequelize co
 ####The Models
 Here are the models and their definitions.  As you can see, for the Post model, not every column in the wp_posts table is included. I've included the most relevant columns; however because the Database class exposes the models, you can extend them to your liking.
 
-```
+```es6
 Post: Conn.define(prefix + 'posts', {
   id: { type: Sequelize.INTEGER, primaryKey: true},
   post_author: { type: Sequelize.INTEGER },
@@ -138,10 +133,6 @@ TermTaxonomy: Conn.define(prefix + 'term_taxonomy', {
 
 In the above example, ConnQueries will give you the following:
 
-**getViewer()**
-
-Necessary because GraphQL doesn't currently allow for nodes on the root query. It simply returns a User object with id:1 and name:Anonymous
-
 **getPosts(args)**
 
 args is an object; however, the only acceptable key in args is ```post_type```. This finds all published posts by post type. Returns a promised array.
@@ -162,6 +153,10 @@ Accepts a post id and returns the thumbnail image. In the **connectionDetails** 
 
 Returns a posts' Postmeta. Keys is an array of valid meta_key values. See the below example for usage.
 
+**getPostLayout(postId)**
+
+As mentioned about, the WordPress Companion Plugin adds the ability to set React Components as Page Layouts directly from the WordPress admin backend. This query finds the Postmeta associated with the postId where the meta_key is "wordexpress_page_fields_page_layout_component". This field is added for you for each Page when activating the companion plugin.
+
 **getPostMetaById(metaId)**
 
 Returns a single Postmeta by id. Probably not very useful right now. Instead, you'll want to use getPostmeta();
@@ -174,11 +169,12 @@ Returns a menu and all of its menu items where the name argument is the slug of 
 
 Extending the above example, it's possible to add your own queries (or even your own models). Here's an example:
 
-```
+```ex6
 ...
-const Database = new WordExpressDatabase(connectionDetails);
+//returns WordExpressDatabase object that has provides connectors to the database;
+const Database = new WordExpressDatabase(settings);
+const Connectors = Database.connectors;
 const Models = Database.models;
-const ConnQueries = Database.queries;
 
 const CustomPostsQuery = () => {
   return Models.Post.findAll({
@@ -189,177 +185,120 @@ const CustomPostsQuery = () => {
   })
 }
 
-ConnQueries.getCustomPosts = CustomPostsQuery;
+Connectors.getCustomPosts = CustomPostsQuery;
 ...
 ```
 
-###Example Usage With GraphQL
+##WordExpressResolvers
+Resolvers are functions that tell the server how to find and return the data for each field in a GraphQL query. The resolving functions simply call your Database Connectors by passing in parameters and return the Connectors result (usually a Promise).
 
-This example requires working knowledge of GraphQL. If you aren't familiar, [start by reading the GraphQL documentation](http://graphql.org/docs/getting-started/).
+After creating your Database and Connectors from WordExpressDatabase, you can call the WordExpressResolvers function by passing in the Connectors and your public application settings (since settings are stored in the application state). Building on the previous examples:
 
-If you'd like a full example, check out the repo for [WordExpress.io](https://github.com/ramsaylanier/WordpressExpress), which is built using this package.
+```es6
+import * as settings from '../settings/settings';
+import { WordExpressDefinitions, WordExpressDatabase, WordExpressResolvers } from 'wordexpress-schema';
 
-```
-const GraphQLUser = new GraphQLObjectType({
-  name: "User",
-  fields: {
-    id: {type: new GraphQLNonNull(GraphQLID)} ,
-    settings: {
-      type: GraphQLSetting,
-      resolve: ()=>{
-        return publicSettings
-      }
-    },
-    posts: {
-      type: PostsConnection,
-      args: {
-        post_type: {
-          type: GraphQLString,
-          defaultValue: 'post'
-        },
-        ...connectionArgs
-      },
-      resolve(root, args) {
-        return connectionFromPromisedArray( ConnQueries.getPosts(args), args );
-      }
-    },
-    page: {
-      type: GraphQLPost,
-      args:{
-        post_name:{ type: GraphQLString },
-      },
-      resolve(root, args){
-        return ConnQueries.getPostByName(args.post_name);
-      }
-    },
-    menus: {
-      type: GraphQLMenu,
-      args: {
-        name: { type: GraphQLString }
-      },
-      resolve(root, args) {
-        return ConnQueries.getMenu(args.name);
-      }
-    },
-    postmeta: {
-      type: PostmetaConnection,
-      args: {
-        post_id: {
-          type: GraphQLInt
-        },
-        ...connectionArgs
-      },
-      resolve(root, args){
-        return ConnQueries.getPostmeta(args.post_id)
-      }
-    }
-  }
-})
+//returns WordExpressDatabase object that has provides connectors to the database;
+const Database = new WordExpressDatabase(settings);
+const Connectors = Database.connectors;
 
-const GraphQLRoot = new GraphQLObjectType({
-  name: 'Root',
-  fields: {
-    viewer: {
-      type: GraphQLUser,
-      resolve: () => {
-        return ConnQueries.getViewer();
-      }
-    }
-  }
-});
-
-const WordExpressSchema = new GraphQLSchema({
-  query: GraphQLRoot
-});
-export default WordExpressSchema;
-
+//Reolving functions that use the database connections to resolve GraphQL queries
+const Resolvers = WordExpressResolvers(Connectors, settings.publicSettings);
 ```
 
-##WordExpressGraphQLSchema
-Instead of writing your own GraphQL schema, you can use *WordExpressGraphQLSchema*. To extend upon the earlier example, this is how it's implemented:
+Just like your Database models and connectors, you can add aditional Resolvers. In fact, if you do extend the WordExpress schema with your own queries, you'll have to. Refer to the [ApolloStack documentation on adding resolvers](http://docs.apollostack.com/apollo-server/resolvers.html#addResolveFunctionsToSchema).
 
-```
-import { WordExpressDatabase, WordExpressGraphQLSchema } from 'wordexpress-schema';
-import { publicSettings, privateSettings } from '../settings/settings';
+##WordExpressDefinitions
+Instead of defining your own GraphQL schema, you can use *WordExpressDefenitions*. To extend upon the earlier example, this is how it's implemented:
 
-const { name, username, password, host } = privateSettings.database;
-const { amazonS3, uploads } = publicSettings;
+```es6
+import * as settings from '../settings/settings';
+import { WordExpressDefinitions, WordExpressDatabase, WordExpressResolvers } from 'wordexpress-schema';
 
-const connectionDetails = {
-  name: name,
-  username: username,
-  password: password,
-  host: host,
-  amazonS3: amazonS3,
-  uploadDirectory: uploads
-}
+//returns WordExpressDatabase object that has provides connectors to the database;
+const Database = new WordExpressDatabase(settings);
+const Connectors = Database.connectors;
 
-const Database = new WordExpressDatabase(connectionDetails);
-const ConnQueries = Database.queries;
-const Schema = WordExpressGraphQLSchema(ConnQueries, publicSettings);
+//Reolving functions that use the database connections to resolve GraphQL queries
+const Resolvers = WordExpressResolvers(Connectors, settings.publicSettings);
 
-export default Schema;
+//GraphQL schema definitions
+const Definitions = WordExpressDefinitions;
+
+export { Connectors, Resolvers, Definitions }; 
 ```
 
-The Schema that gets exported contains a Root query that has a viewer field. The viewer is of type GraphQLUser, which is a custom GraphQLObjectType that is defined by the package. GraphQLUser serves as the main fragment that will be queried from. This will make sense if you are at all familiar with GraphQL. If you arent, here are some practical examples of how to use the provided Schema.
+The Schema is really just an array of GraphQL schema language string written in GraphQL type language. You can extend the schema by simply pushing new GraphQL strings into the array. 
 
 ###Building a Landing Page Component
-In this example, I'm using Relay to query a fragment on User to find a page with the post_name(AKA slug) of "homepage". I'm getting the post_title, the post_content, and the thumbnail.
+In this example, I'm using Apollo to query a fragment on User to find a page with the post_name(AKA slug) of "homepage". I'm getting the post_title, the post_content, and the thumbnail.
 
-```
+```es6
 import React from 'react';
-import Relay from 'react-relay';
-import Page from './page.js';
+import Page from '../pages/page.js';
 import PostContent from '../posts/PostContent';
+import { connect } from 'react-apollo';
 
-class LandingPage extends React.Component{
+class FrontPageLayout extends React.Component{
 
-	render(){
-		const { post_title, post_content, thumbnail} = this.props.viewer.page;
-		let bg = {
-			backgroundImage: "url('" + thumbnail + "')"
-		}
+  render(){
+    const { loading } = this.props.page;
 
-		let heroClass = thumbnail ? "hero_thumbnail" : "hero"
+    if (loading){
+      return (
+        <div>Loading...</div>
+      )
+    } else {
+      const { post_title, post_content, thumbnail} = this.props.page.viewer.page;
+      let bg = {
+	backgroundImage: "url('" + thumbnail + "')"
+      }
 
-		return (
-			<Page>
-				<div styleName={heroClass} style={bg}>
-					<div styleName="wrapper tight">
-						<h1 styleName="title">WordExpress</h1>
-						<h4 styleName="subtitle">WordPress using Node, Express, and React.</h4>
-					</div>
-				</div>
+      let heroClass = thumbnail ? "hero_thumbnail" : "hero"
 
-				<div styleName="content">
-					<div styleName="wrapper tight">
-						<PostContent post_content={post_content}/>
-					</div>
-				</div>
-			</Page>
-		)
-	}
+       return (
+         <div>
+  	   <div styleName={heroClass} style={bg}>
+  	     <div styleName="wrapper tight">
+  	       <h1 styleName="title">WordExpress</h1>
+  	       <h4 styleName="subtitle">WordPress using Node, Express, and React.</h4>
+  	     </div>
+  	   </div>
+
+  	   <div styleName="content">
+  	     <div styleName="wrapper tight">
+  	       <PostContent post_content={post_content}/>
+  	     </div>
+  	   </div>
+         </div>
+       )
+     }
+   }
 }
 
-export default Relay.createContainer(LandingPage, {
-  fragments: {
-    viewer: () => Relay.QL`
-      fragment on User {
-        page(post_name:"homepage"){
-					id,
-					post_title
-					post_content
-					thumbnail
-				},
-				settings{
-					id
-					uploads
-					amazonS3
-				}
+
+const FrontPageWithData = connect({
+  mapQueriesToProps({ ownProps, state}) {
+    return {
+      page: {
+        query: `
+          query getPage{
+            viewer{
+              page(post_name: "homepage"){
+                id,
+      	        post_title
+      	        post_content
+      		thumbnail
+              }
+            }
+          }
+        `
       }
-    `,
-  },
-});
+    }
+  }
+})(FrontPageLayout);
+
+export default FrontPageWithData;
 ```
 
 This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress). 
