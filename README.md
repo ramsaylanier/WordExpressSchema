@@ -17,24 +17,24 @@ WordExpress Schema exports two things: **WordExpressDatabase** and **WordExpress
 
 Below is detailed documentation on using both.
 
-* [Using WordExpress Database](https://github.com/ramsaylanier/wordexpress-schema/blob/master/README.md#wordexpressdatabase)
+* [Using WordExpress Database](#wordexpressdatabase)
 
-  * [Connection Settings](https://github.com/ramsaylanier/wordexpress-schema#connection-settings)
+  * [Connection Settings](#connection-settings)
   
-  * [The Database Class](https://github.com/ramsaylanier/wordexpress-schema#the-database-class)
+  * [The Database Class](#the-database-class)
   
-    * [The Models](https://github.com/ramsaylanier/wordexpress-schema#the-models)
+    * [The Models](#the-models)
     
-    * [The Queries](https://github.com/ramsaylanier/wordexpress-schema#the-queries)
+    * [The Queries](#the-queries)
     
-    * [Extending Queries](https://github.com/ramsaylanier/wordexpress-schema#extending-queries)
+    * [Extending Queries](#extending-queries)
     
-  * [Example Usage with GraphQL](https://github.com/ramsaylanier/wordexpress-schema#example-usage-with-graphql)
+  * [Example Usage with GraphQL](#example-usage-with-graphql)
   
 
-* [Using WordExpressGraphQLSchema](https://github.com/ramsaylanier/wordexpress-schema#wordexpressgraphqlschema)
+* [Using WordExpressGraphQLSchema](#wordexpressgraphqlschema)
 
-   * [Example: Building A Landing Page component](https://github.com/ramsaylanier/wordexpress-schema#building-a-landing-page-component)
+   * [Example: Building A Landing Page component](#building-a-landing-page-component)
 
 
 ##WordExpressDatabase
