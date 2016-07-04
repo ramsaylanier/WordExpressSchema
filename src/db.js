@@ -3,15 +3,28 @@ import _ from 'lodash';
 import PHPUnserialize from 'php-unserialize';
 
 export default class WordExpressDatabase{
-  constructor(connectionDetails){
-    this.connectionDetails = connectionDetails;
-    this.connection = this.connect(connectionDetails);
+  constructor(settings){
+    this.settings = settings;
+    this.connection = this.connect(settings);
     this.connectors = this.getConnectors();
     this.models = this.getModels();
   }
 
   connect(){
-    const { name, username, password, host} = this.connectionDetails;
+
+    const { name, username, password, host } = this.settings.privateSettings.database;
+    const { amazonS3, uploads } = this.settings.publicSettings;
+
+    //Seqeulize connection deatails to connect to WordPress MySQL database
+    const connectionDetails = {
+      name: name,
+      username: username,
+      password: password,
+      host: host,
+      amazonS3: amazonS3,
+      uploadDirectory: uploads
+    }
+
     const Conn = new Sequelize(
       name,
       username,
@@ -74,7 +87,7 @@ export default class WordExpressDatabase{
   }
 
   getConnectors(){
-    const { amazonS3, uploadDirectory } = this.connectionDetails;
+    const { amazonS3, uploads } = this.settings.publicSettings;
     const { Post, Postmeta, Terms, TermRelationships, TermTaxonomy  } = this.getModels();
 
     Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'});
@@ -147,8 +160,8 @@ export default class WordExpressDatabase{
               if (post.wp_postmeta[0]){
                 const thumbnail = post.wp_postmeta[0].dataValues.meta_value;
                 const thumbnailSrc = amazonS3 ?
-                  uploadDirectory + PHPUnserialize.unserialize(thumbnail).key :
-                  uploadDirectory + thumbnail;
+                  uploads + PHPUnserialize.unserialize(thumbnail).key :
+                  uploads + thumbnail;
 
                 return thumbnailSrc
               } else {
@@ -209,18 +222,18 @@ export default class WordExpressDatabase{
             };
             menu.id = res.term_id;
             const relationship = res.wp_term_relationships;
-            const posts = _.map(_.pluck (relationship, 'wp_post'), 'dataValues');
+            const posts = _.map(_.map (relationship, 'wp_post'), 'dataValues');
             const navItems = [];
 
-            const parentIds = _.pluck(_.filter(posts, post=>{
+            const parentIds = _.map(_.filter(posts, post=>{
               return post.post_parent == 0
             }), 'id');
 
             _.map(_.sortBy(posts, 'post_parent'), post => {
               let navItem = {};
-              let postmeta = _.pluck(post.wp_postmeta, 'dataValues');
+              let postmeta = _.map(post.wp_postmeta, 'dataValues');
               let isParent = _.includes( parentIds, post.id);
-              let linkedId = Number(_.pluck(_.filter(postmeta, meta => {
+              let linkedId = Number(_.map(_.filter(postmeta, meta => {
                 return meta.meta_key == '_menu_item_object_id'
               }), 'meta_value'));
 
@@ -231,7 +244,7 @@ export default class WordExpressDatabase{
                 navItem.children = [];
                 navItems.push(navItem);
               } else {
-                let parentId = Number(_.pluck(_.filter(postmeta, meta => {
+                let parentId = Number(_.map(_.filter(postmeta, meta => {
                   return meta.meta_key == '_menu_item_menu_item_parent'
                 }), 'meta_value'));
                 let existing = _.findWhere(navItems, {'id' : parentId})

@@ -26,8 +26,10 @@
     "url": "https://github.com/ramsaylanier/wordexpress-schema/issues"
   },
   "homepage": "https://github.com/ramsaylanier/wordexpress-schema#readme",
-  "dependencies":{
-    "lodash": "^4.0.1",
+  "dependencies": {
+    "apollo-client": "^0.3.26",
+    "graphql-tag": "^0.1.7",
+    "lodash": "^4.13.1",
     "php-unserialize": "0.0.1",
     "sequelize": "^3.18.0"
   },
