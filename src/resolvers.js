@@ -10,8 +10,12 @@ export default function WordExpressResolvers(Connectors, publicSettings){
       menus(_, {name}){
         return Connectors.getMenu(name);
       },
-      page(_, {name}){
-        return Connectors.getPostByName(name);
+      post(_, {name, id}){
+        if (name){
+          return Connectors.getPostByName(name, id);
+        } else {
+          return Connectors.getPostById(id);
+        }
       },
       postmeta(_, {postId}){
         return Connectors.getPostmeta(postId);
