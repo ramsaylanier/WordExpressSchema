@@ -108,25 +108,50 @@ export default class WordExpressDatabase{
       },
 
       getPosts(args){
-
         const { post_type, limit = 10, skip = 0 } = args;
 
         return Post.findAll({
           where: {
             post_type: post_type,
-            post_status: 'publish',
+            post_status: 'publish'
           },
           limit: limit,
           offset: skip
-        })
+        });
       },
+
       getPostById(postId){
         return Post.findOne({
           where: {
+            post_status: 'publish',
             id: postId
           }
-        })
+        }).then ( post => {
+          if (post){
+
+            const { id } = post.dataValues;
+
+            post.dataValues.children = [];
+
+            return Post.findAll({
+              attributes: ['id'],
+              where: {
+                post_parent: id
+              }
+            }).then ( childPosts => {
+
+              if (childPosts.length > 0){
+                _.map(childPosts, childPost => {
+                  post.dataValues.children.push({ "id" : Number(childPost.dataValues.id) });
+                })
+              }
+
+              return post
+            })
+          }
+        });
       },
+
       getPostByName(name){
         return Post.findOne({
           where: {
@@ -135,6 +160,7 @@ export default class WordExpressDatabase{
           }
         })
       },
+
       getPostThumbnail(postId){
         return Postmeta.findOne({
           where: {
@@ -233,14 +259,19 @@ export default class WordExpressDatabase{
               let navItem = {};
               let postmeta = _.map(post.wp_postmeta, 'dataValues');
               let isParent = _.includes( parentIds, post.id);
+              let objectType = _.map(_.filter(postmeta, meta => {
+                return meta.meta_key == '_menu_item_object'
+              }), 'meta_value');
               let linkedId = Number(_.map(_.filter(postmeta, meta => {
                 return meta.meta_key == '_menu_item_object_id'
               }), 'meta_value'));
 
               if (isParent){
                 navItem.id = post.id;
+                navItem.post_title = post.post_title;
                 navItem.order = post.menu_order;
                 navItem.linkedId = linkedId;
+                navItem.object_type = objectType;
                 navItem.children = [];
                 navItems.push(navItem);
               } else {
