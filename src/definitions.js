@@ -7,7 +7,9 @@ const Definitions = `
 
   type MenuItem {
     id: ID!
+    post_title: String
     linkedId: Int
+    object_type: String
     order: Int
     navitem: Post
     children: [MenuItem]
@@ -35,6 +37,7 @@ const Definitions = `
     post_status: String
     post_type: String
     post_name: String
+    post_parent: Int
     menu_order: Int
     layout: Postmeta
     thumbnail: String
@@ -59,7 +62,7 @@ const Definitions = `
     settings: Setting
     posts(post_type: String = "post", limit: Int, skip: Int): [Post]
     menus(name: String): Menu
-    page(name: String): Post
+    post(name: String, id: Int): Post
     postmeta(post_id: Int, after: String, first: Int, before: String, last: Int): Postmeta
   }
 
