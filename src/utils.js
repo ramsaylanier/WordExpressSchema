@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 import WordExpressClient from './client';
 
-export function setLayout(nextState, replaceState, cb){
+export function setLayout(nextState, replaceState, cb) {
   const { page } = nextState.params;
   const { Layouts } = nextState.routes[0];
 
@@ -17,7 +17,7 @@ export function setLayout(nextState, replaceState, cb){
         }
       }
     `,
-    variables:{
+    variables: {
       pageName: page || 'homepage'
     }
   }).then((graphQLResult) => {
@@ -25,7 +25,7 @@ export function setLayout(nextState, replaceState, cb){
     let Layout;
 
     if (data.page) {
-      if (data.page.layout){
+      if (data.page.layout) {
         Layout = Layouts[data.page.layout.meta_value] || Layouts['Default'];
       } else {
         Layout = Layouts['Default'];

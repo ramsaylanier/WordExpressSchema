@@ -1,56 +1,55 @@
-export default function WordExpressResolvers(Connectors, publicSettings){
+export default function WordExpressResolvers(Connectors, publicSettings) {
   const Resolvers = {
     Query: {
-      settings(){
-        return publicSettings
+      settings() {
+        return publicSettings;
       },
-      posts(_, args){
+      posts(_, args) {
         return Connectors.getPosts(args);
       },
-      menus(_, {name}){
+      menus(_, {name}) {
         return Connectors.getMenu(name);
       },
-      post(_, {name, id}){
-        if (name){
+      post(_, {name, id}) {
+        if (name) {
           return Connectors.getPostByName(name, id);
-        } else {
-          return Connectors.getPostById(id);
         }
+        return Connectors.getPostById(id);
       },
-      postmeta(_, {postId}){
+      postmeta(_, {postId}) {
         return Connectors.getPostmeta(postId);
       }
     },
     Post: {
-      layout(post){
-        return Connectors.getPostLayout(post.id)
+      layout(post) {
+        return Connectors.getPostLayout(post.id);
       },
-      post_meta(post, keys){
-        return Connectors.getPostmeta(post.id, keys)
+      post_meta(post, keys) {
+        return Connectors.getPostmeta(post.id, keys);
       },
-      thumbnail(post){
-        return Connectors.getPostThumbnail(post.id)
+      thumbnail(post) {
+        return Connectors.getPostThumbnail(post.id);
       }
     },
     Postmeta: {
-      connecting_post(postmeta){
-        return Connectors.getPostById(postmeta.meta_value)
+      connecting_post(postmeta) {
+        return Connectors.getPostById(postmeta.meta_value);
       }
     },
     Menu: {
-      items(menu){
+      items(menu) {
         return menu.items;
       }
     },
     MenuItem: {
-      navitem(menuItem){
-        return Connectors.getPostById(menuItem.linkedId)
+      navitem(menuItem) {
+        return Connectors.getPostById(menuItem.linkedId);
       },
-      children(menuItem){
-          return menuItem.children
+      children(menuItem) {
+        return menuItem.children;
       }
     }
-  }
+  };
 
-  return Resolvers
+  return Resolvers;
 }
