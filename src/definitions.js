@@ -33,7 +33,7 @@ const Definitions = `
     term_id: Int!
     name: String
     slug: String
-    posts(post_type: String = "post", post_status: String = "publish", limit: Int, skip: Int): [Post]
+    posts(post_type: String = "post", limit: Int, skip: Int): [Post]
   }
 
   type Post {
@@ -67,7 +67,7 @@ const Definitions = `
 
   type Query {
     settings: Setting
-    posts(post_type: String = "post", post_status: String = "publish", limit: Int, skip: Int): [Post]
+    posts(post_type: String = "post", limit: Int, skip: Int): [Post]
     menus(name: String): Menu
     post(name: String, id: Int): Post
     category(term_id: Int): Category

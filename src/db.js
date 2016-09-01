@@ -96,11 +96,11 @@ export default class WordExpressDatabase {
         return viewer;
       },
 
-      getPosts({ post_type, limit = 10, skip = 0, post_status }) {
+      getPosts({ post_type, limit = 10, skip = 0 }) {
         return Post.findAll({
           where: {
             post_type,
-            post_status
+            post_status: 'publish'
           },
           limit: limit,
           offset: skip
