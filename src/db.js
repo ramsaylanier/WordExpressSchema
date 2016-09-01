@@ -2,29 +2,16 @@ import Sequelize from 'sequelize';
 import _ from 'lodash';
 import PHPUnserialize from 'php-unserialize';
 
-export default class WordExpressDatabase{
-  constructor(settings){
+export default class WordExpressDatabase {
+  constructor(settings) {
     this.settings = settings;
     this.connection = this.connect(settings);
     this.connectors = this.getConnectors();
     this.models = this.getModels();
   }
 
-  connect(){
-
+  connect() {
     const { name, username, password, host, port } = this.settings.privateSettings.database;
-    const { amazonS3, uploads } = this.settings.publicSettings;
-
-    //Seqeulize connection deatails to connect to WordPress MySQL database
-    const connectionDetails = {
-      name: name,
-      username: username,
-      password: password,
-      host: host,
-      port: port || 3306,
-      amazonS3: amazonS3,
-      uploadDirectory: uploads
-    }
 
     const Conn = new Sequelize(
       name,
@@ -44,7 +31,7 @@ export default class WordExpressDatabase{
     return Conn;
   }
 
-  getModels(){
+  getModels() {
     const prefix = 'wp_';
     const Conn = this.connection;
 
@@ -55,9 +42,9 @@ export default class WordExpressDatabase{
         post_title: { type: Sequelize.STRING },
         post_content: { type: Sequelize.STRING },
         post_excerpt: { type: Sequelize.STRING },
-        post_status:{ type: Sequelize.STRING },
-        post_type:{ type: Sequelize.STRING },
-        post_name:{ type: Sequelize.STRING},
+        post_status: { type: Sequelize.STRING },
+        post_type: { type: Sequelize.STRING },
+        post_name: { type: Sequelize.STRING},
         post_parent: { type: Sequelize.INTEGER},
         menu_order: { type: Sequelize.INTEGER}
       }),
@@ -85,12 +72,12 @@ export default class WordExpressDatabase{
         parent: { type: Sequelize.INTEGER },
         count: { type: Sequelize.INTEGER },
       })
-    }
+    };
   }
 
-  getConnectors(){
+  getConnectors() {
     const { amazonS3, uploads } = this.settings.publicSettings;
-    const { Post, Postmeta, Terms, TermRelationships, TermTaxonomy  } = this.getModels();
+    const { Post, Postmeta, Terms, TermRelationships } = this.getModels();
 
     Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'});
     TermRelationships.belongsTo(Terms, {foreignKey: 'term_taxonomy_id'});
@@ -105,11 +92,11 @@ export default class WordExpressDatabase{
 
     return {
 
-      getViewer(){
-        return viewer
+      getViewer() {
+        return viewer;
       },
 
-      getPosts(args){
+      getPosts(args) {
         const { post_type, limit = 10, skip = 0 } = args;
 
         return Post.findAll({
@@ -122,56 +109,52 @@ export default class WordExpressDatabase{
         });
       },
 
-      getPostById(postId){
+      getPostById(postId) {
         return Post.findOne({
           where: {
             post_status: 'publish',
             id: postId
           }
-        }).then ( post => {
-          if (post){
-
+        }).then(post => {
+          if (post) {
             const { id } = post.dataValues;
-
             post.dataValues.children = [];
-
             return Post.findAll({
               attributes: ['id'],
               where: {
                 post_parent: id
               }
-            }).then ( childPosts => {
-
-              if (childPosts.length > 0){
+            }).then(childPosts => {
+              if (childPosts.length > 0) {
                 _.map(childPosts, childPost => {
-                  post.dataValues.children.push({ "id" : Number(childPost.dataValues.id) });
-                })
+                  post.dataValues.children.push({ id: Number(childPost.dataValues.id) });
+                });
               }
-
-              return post
-            })
+              return post;
+            });
           }
+          return null;
         });
       },
 
-      getPostByName(name){
+      getPostByName(name) {
         return Post.findOne({
           where: {
             post_status: 'publish',
             post_name: name
           }
-        })
+        });
       },
 
-      getPostThumbnail(postId){
+      getPostThumbnail(postId) {
         return Postmeta.findOne({
           where: {
             post_id: postId,
             meta_key: '_thumbnail_id'
           }
-        }).then( res => {
-          if (res){
-            let meta_key = amazonS3 ? 'amazonS3_info' : '_wp_attached_file';
+        }).then(res => {
+          if (res) {
+            const meta_key = amazonS3 ? 'amazonS3_info' : '_wp_attached_file';
 
             return Post.findOne({
               where: {
@@ -180,36 +163,35 @@ export default class WordExpressDatabase{
               include: {
                 model: Postmeta,
                 where: {
-                  meta_key:meta_key
+                  meta_key: meta_key
                 },
                 limit: 1
               }
             }).then( post => {
-              if (post.wp_postmeta[0]){
+              if (post.wp_postmeta[0]) {
                 const thumbnail = post.wp_postmeta[0].dataValues.meta_value;
                 const thumbnailSrc = amazonS3 ?
                   uploads + PHPUnserialize.unserialize(thumbnail).key :
                   uploads + thumbnail;
 
-                return thumbnailSrc
-              } else {
-                return null;
+                return thumbnailSrc;
               }
-            })
-          } else {
-            return
+              return null;
+            });
           }
-        })
+          return null;
+        });
       },
-      getPostLayout(postId){
+      getPostLayout(postId) {
         return Postmeta.findOne({
           where: {
             post_id: postId,
             meta_key: 'wordexpress_page_fields_page_layout_component'
           }
-        })
+        });
       },
-      getPostmetaById(metaId, keys){
+
+      getPostmetaById(metaId, keys) {
         return Postmeta.findOne({
           where: {
             meta_id: metaId,
@@ -217,9 +199,10 @@ export default class WordExpressDatabase{
               $in: keys
             }
           }
-        })
+        });
       },
-      getPostmeta(postId, keys){
+
+      getPostmeta(postId, keys) {
         return Postmeta.findAll({
           where: {
             post_id: postId,
@@ -227,9 +210,10 @@ export default class WordExpressDatabase{
               $in: keys
             }
           }
-        })
+        });
       },
-      getMenu(name){
+
+      getMenu(name) {
         return Terms.findOne({
           where: {
             slug: name
@@ -241,34 +225,34 @@ export default class WordExpressDatabase{
               include: [Postmeta]
             }]
           }]
-        }).then ( res => {
-          if (res){
-            let menu = {
+        }).then(res => {
+          if (res) {
+            const menu = {
               id: null,
               name: name,
               items: null,
             };
             menu.id = res.term_id;
             const relationship = res.wp_term_relationships;
-            const posts = _.map(_.map (relationship, 'wp_post'), 'dataValues');
+            const posts = _.map(_.map(relationship, 'wp_post'), 'dataValues');
             const navItems = [];
 
             const parentIds = _.map(_.filter(posts, post=>{
-              return post.post_parent == 0
+              return post.post_parent === 0;
             }), 'id');
 
             _.map(_.sortBy(posts, 'post_parent'), post => {
-              let navItem = {};
-              let postmeta = _.map(post.wp_postmeta, 'dataValues');
-              let isParent = _.includes( parentIds, post.id);
-              let objectType = _.map(_.filter(postmeta, meta => {
-                return meta.meta_key == '_menu_item_object'
+              const navItem = {};
+              const postmeta = _.map(post.wp_postmeta, 'dataValues');
+              const isParent = _.includes( parentIds, post.id);
+              const objectType = _.map(_.filter(postmeta, meta => {
+                return meta.meta_key === '_menu_item_object';
               }), 'meta_value');
-              let linkedId = Number(_.map(_.filter(postmeta, meta => {
-                return meta.meta_key == '_menu_item_object_id'
+              const linkedId = Number(_.map(_.filter(postmeta, meta => {
+                return meta.meta_key === '_menu_item_object_id';
               }), 'meta_value'));
 
-              if (isParent){
+              if (isParent) {
                 navItem.id = post.id;
                 navItem.post_title = post.post_title;
                 navItem.order = post.menu_order;
@@ -277,23 +261,23 @@ export default class WordExpressDatabase{
                 navItem.children = [];
                 navItems.push(navItem);
               } else {
-                let parentId = Number(_.map(_.filter(postmeta, meta => {
-                  return meta.meta_key == '_menu_item_menu_item_parent'
+                const parentId = Number(_.map(_.filter(postmeta, meta => {
+                  return meta.meta_key === '_menu_item_menu_item_parent';
                 }), 'meta_value'));
-                let existing = _.findWhere(navItems, {'id' : parentId})
+                const existing = _.findWhere(navItems, {'id': parentId});
 
-                if (existing){
-                  existing.children.push({id: post.id, linkedId: linkedId })
+                if (existing) {
+                  existing.children.push({id: post.id, linkedId: linkedId });
                 }
               }
 
               menu.items = navItems;
             });
-
             return menu;
           }
+          return null;
         });
       }
-    }
+    };
   }
 }
