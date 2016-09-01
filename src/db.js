@@ -12,7 +12,7 @@ export default class WordExpressDatabase{
 
   connect(){
 
-    const { name, username, password, host } = this.settings.privateSettings.database;
+    const { name, username, password, host, port } = this.settings.privateSettings.database;
     const { amazonS3, uploads } = this.settings.publicSettings;
 
     //Seqeulize connection deatails to connect to WordPress MySQL database
@@ -21,6 +21,7 @@ export default class WordExpressDatabase{
       username: username,
       password: password,
       host: host,
+      port: port || 3306,
       amazonS3: amazonS3,
       uploadDirectory: uploads
     }
@@ -32,6 +33,7 @@ export default class WordExpressDatabase{
       {
         dialect: 'mysql',
         host: host,
+        port: port || 3306,
         define: {
           timestamps: false,
           freezeTableName: true,
