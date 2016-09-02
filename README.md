@@ -29,15 +29,15 @@ Below is detailed documentation on using both.
 * [Using WordExpress Database](#wordexpressdatabase)
 
   * [Connection Settings](#connection-settings)
-  
+
   * [The Database Class](#the-database-class)
-  
+
     * [The Models](#the-models)
-    
+
     * [The Queries](#the-queries)
-    
+
     * [Extending Queries](#extending-queries)
-    
+
 
 * [Using WordExpress Resolvers](#wordexpressresolvers)  
 
@@ -80,16 +80,16 @@ const Connectors = Database.connectors;
 
 ###Connection Settings
 
-In the above example, **WordExpressDatabase** is passed a settings object that contains some WordPress database settings. Name, username, password, and host are all self-explanatory. 
+In the above example, **WordExpressDatabase** is passed a settings object that contains some WordPress database settings. Name, username, password, and host are all self-explanatory.
 
 WordExpress will work with Amazon S3; passing in a truthy value for amazonS3 will alter the query for getting Post Thumbnail images. If you are using S3, you just need the include the base path to your S3 bucket (which means you should exclude the wp-content/uploads/ part of the path). If you are hosting images on your own server, include the full path to the uploads folder.
 
-Lastly, you can modify the wordpress database prefix. Some people don't use the default "wp_" prefix for various reasons. If that's you, I got your back. 
+Lastly, you can modify the wordpress database prefix. Some people don't use the default "wp_" prefix for various reasons. If that's you, I got your back.
 
 
 ###The Database Class
 
-The Database class above contains the connectionDetails, the actual Sequelize connection, the database queries, and the database models. Really, all you need for GraphQL setup are the queries; however, if you'd like to extend queries with your own, the Database Models are exposed. 
+The Database class above contains the connectionDetails, the actual Sequelize connection, the database queries, and the database models. Really, all you need for GraphQL setup are the queries; however, if you'd like to extend queries with your own, the Database Models are exposed.
 
 ####The Models
 Here are the models and their definitions.  As you can see, for the Post model, not every column in the wp_posts table is included. I've included the most relevant columns; however because the Database class exposes the models, you can extend them to your liking.
@@ -137,9 +137,9 @@ TermTaxonomy: Conn.define(prefix + 'term_taxonomy', {
 
 In the above example, ConnQueries will give you the following:
 
-**getPosts(args)**
+**getPosts({ post_type, limit = 10, skip = 0 })**
 
-args is an object; however, the only acceptable key in args is ```post_type```. This finds all published posts by post type. Returns a promised array.
+Returns all posts of a given post type. Accepts a limit argument, that is defaulted to 10. Skip is used for pagination (which hasn't been built in yet, but soon!). Returns a promised array.
 
 **getPostById(postId)**
 
@@ -164,6 +164,10 @@ As mentioned about, the WordPress Companion Plugin adds the ability to set React
 **getPostMetaById(metaId)**
 
 Returns a single Postmeta by id. Probably not very useful right now. Instead, you'll want to use getPostmeta();
+
+**getPostsInCategory(term_id, { post_type, limit = 10, skip = 0 })**
+
+Similar to getPosts, except the first argument accepts the id of a category.
 
 **getMenu(name)**
 
@@ -229,10 +233,10 @@ const Resolvers = WordExpressResolvers(Connectors, settings.publicSettings);
 //GraphQL schema definitions
 const Definitions = WordExpressDefinitions;
 
-export { Connectors, Resolvers, Definitions }; 
+export { Connectors, Resolvers, Definitions };
 ```
 
-The Schema is really just an array of GraphQL schema language string written in GraphQL type language. You can extend the schema by simply pushing new GraphQL strings into the array. 
+The Schema is really just an array of GraphQL schema language string written in GraphQL type language. You can extend the schema by simply pushing new GraphQL strings into the array.
 
 ###Building a Landing Page Component
 In this example, I'm using Apollo to query a fragment on User to find a page with the post_name(AKA slug) of "homepage". I'm getting the post_title, the post_content, and the thumbnail.
@@ -305,7 +309,7 @@ const FrontPageWithData = connect({
 export default FrontPageWithData;
 ```
 
-This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress). 
+This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress).
 
 ##Using Definitions and Resolvers with Apollo Server
 This example is from the [WordExpress repo](https://github.com/ramsaylanier/WordPressExpress/blob/master/dev.js), using Webpack. First, we import the Definitions and Resolvers from our [schema.js file](https://github.com/ramsaylanier/WordPressExpress/blob/master/schema/schema.js). This file should look a lot like the end result of the example in the WordExpressDefinitions section, which exports the Connectors, Resolvers, and Definitions.
@@ -337,5 +341,3 @@ graphQLServer.listen(GRAPHQL_PORT, () => console.log(
 
 ...
 ```
-
-
