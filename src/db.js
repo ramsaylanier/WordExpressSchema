@@ -96,16 +96,38 @@ export default class WordExpressDatabase {
         return viewer;
       },
 
-      getPosts(args) {
-        const { post_type, limit = 10, skip = 0 } = args;
-
+      getPosts({ post_type, limit = 10, skip = 0 }) {
         return Post.findAll({
           where: {
-            post_type: post_type,
+            post_type,
             post_status: 'publish'
           },
           limit: limit,
           offset: skip
+        });
+      },
+
+      getPostsInCategory(term_id, { post_type, limit = 10, skip = 0 }) {
+        return TermRelationships.findAll({
+          attributes: [],
+          include: [{
+            model: Post,
+            where: {
+              post_type: post_type,
+              post_status: 'publish'
+            }
+          }],
+          where: {
+            term_taxonomy_id: term_id
+          },
+          limit: limit,
+          offset: skip
+        }).then(posts => _.map(posts, post => post.wp_post));
+      },
+
+      getCategoryById(term_id) {
+        return Terms.findOne({
+          where: { term_id }
         });
       },
 

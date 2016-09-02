@@ -29,6 +29,13 @@ const Definitions = `
     endCursor: String
   }
 
+  type Category {
+    term_id: Int!
+    name: String
+    slug: String
+    posts(post_type: String = "post", limit: Int, skip: Int): [Post]
+  }
+
   type Post {
     id: Int
     post_title: String
@@ -63,6 +70,7 @@ const Definitions = `
     posts(post_type: String = "post", limit: Int, skip: Int): [Post]
     menus(name: String): Menu
     post(name: String, id: Int): Post
+    category(term_id: Int): Category
     postmeta(post_id: Int, after: String, first: Int, before: String, last: Int): Postmeta
   }
 

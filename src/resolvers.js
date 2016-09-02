@@ -4,6 +4,9 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       settings() {
         return publicSettings;
       },
+      category(_, { term_id }) {
+        return Connectors.getCategoryById(term_id);
+      },
       posts(_, args) {
         return Connectors.getPosts(args);
       },
@@ -18,6 +21,11 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       },
       postmeta(_, {postId}) {
         return Connectors.getPostmeta(postId);
+      }
+    },
+    Category: {
+      posts(category, args) {
+        return Connectors.getPostsInCategory(category.term_id, args);
       }
     },
     Post: {
