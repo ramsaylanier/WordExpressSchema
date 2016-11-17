@@ -256,12 +256,19 @@ export default class WordExpressDatabase {
             };
             menu.id = res.term_id;
             const relationship = res.wp_term_relationships;
-            const posts = _.map(_.map(relationship, 'wp_post'), 'dataValues');
+            const posts = _.map(_.map(_.map(relationship, 'wp_post'), 'dataValues'), (post) => {
+              const postmeta = _.map(post.wp_postmeta, 'dataValues');
+              const parentMenuId = _.map(_.filter(postmeta, meta => {
+                return meta.meta_key === '_menu_item_menu_item_parent';
+              }), 'meta_value');
+              post.post_parent = parseInt(parentMenuId[0]);
+              return post;
+            });
             const navItems = [];
 
-            const parentIds = _.map(_.filter(posts, post=>{
-              return post.post_parent === 0;
-            }), 'id');
+            const parentIds = _.map(_.filter(posts, post => (
+              post.post_parent === 0
+            )), 'id');
 
             _.map(_.sortBy(posts, 'post_parent'), post => {
               const navItem = {};
@@ -286,10 +293,12 @@ export default class WordExpressDatabase {
                 const parentId = Number(_.map(_.filter(postmeta, meta => {
                   return meta.meta_key === '_menu_item_menu_item_parent';
                 }), 'meta_value'));
-                const existing = _.findWhere(navItems, {'id': parentId});
+                const existing = navItems.filter((item) => (
+                  item.id === parentId
+                ));
 
-                if (existing) {
-                  existing.children.push({id: post.id, linkedId: linkedId });
+                if (existing.length) {
+                  existing[0].children.push({id: post.id, linkedId: linkedId });
                 }
               }
 
