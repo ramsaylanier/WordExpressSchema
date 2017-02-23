@@ -32,7 +32,7 @@ export default class WordExpressDatabase {
   }
 
   getModels() {
-    const prefix = 'wp_';
+    const prefix = this.settings.privateSettings.wp_prefix;
     const Conn = this.connection;
 
     return {
