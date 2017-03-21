@@ -46,7 +46,8 @@ export default class WordExpressDatabase {
         post_type: { type: Sequelize.STRING },
         post_name: { type: Sequelize.STRING},
         post_parent: { type: Sequelize.INTEGER},
-        menu_order: { type: Sequelize.INTEGER}
+        menu_order: { type: Sequelize.INTEGER},
+	post_date: { type: Sequelize.STRING }
       }),
       Postmeta: Conn.define(prefix + 'postmeta', {
         meta_id: { type: Sequelize.INTEGER, primaryKey: true, field: 'meta_id' },
