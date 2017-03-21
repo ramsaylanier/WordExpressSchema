@@ -46,6 +46,7 @@ const Definitions = `
     post_name: String
     post_parent: Int
     menu_order: Int
+    post_date: String
     layout: Postmeta
     thumbnail: String
     post_meta(keys: [MetaType], after: String, first: Int, before: String, last: Int): Postmeta
