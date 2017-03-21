@@ -46,9 +46,11 @@ const Definitions = `
     post_name: String
     post_parent: Int
     menu_order: Int
+    post_author: Int
     layout: Postmeta
     thumbnail: String
     post_meta(keys: [MetaType], after: String, first: Int, before: String, last: Int): Postmeta
+    author: User
   }
 
   type Postmeta {
@@ -58,6 +60,14 @@ const Definitions = `
     meta_key: String
     meta_value: String
     connecting_post: Post
+  }
+
+  type User {
+    id: Int
+    user_nicename: String
+    user_email: String
+    user_registered: String
+    display_name: String
   }
 
   type Setting {
@@ -72,6 +82,7 @@ const Definitions = `
     post(name: String, id: Int): Post
     category(term_id: Int): Category
     postmeta(post_id: Int, after: String, first: Int, before: String, last: Int): Postmeta
+    user(id: Int): User
   }
 
   schema {
