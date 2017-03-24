@@ -54,6 +54,13 @@ export default class WordExpressDatabase {
         meta_key: { type: Sequelize.STRING },
         meta_value: { type: Sequelize.INTEGER },
       }),
+      User: Conn.define(prefix + 'users', {
+        id: { type: Sequelize.INTEGER, primaryKey: true },
+	user_nicename: { type: Sequelize.STRING },
+	user_email: { type: Sequelize.STRING },
+	user_registered: { type: Sequelize.STRING },
+	display_name: { type: Sequelize.STRING }
+      }),
       Terms: Conn.define(prefix + 'terms', {
         term_id: { type: Sequelize.INTEGER, primaryKey: true },
         name: { type: Sequelize.STRING },
@@ -77,7 +84,7 @@ export default class WordExpressDatabase {
 
   getConnectors() {
     const { amazonS3, uploads } = this.settings.publicSettings;
-    const { Post, Postmeta, Terms, TermRelationships } = this.getModels();
+    const { Post, Postmeta, User, Terms, TermRelationships } = this.getModels();
 
     Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'});
     TermRelationships.belongsTo(Terms, {foreignKey: 'term_taxonomy_id'});
@@ -204,6 +211,15 @@ export default class WordExpressDatabase {
           return null;
         });
       },
+
+      getUser(userId) {
+        return User.findOne({
+	  where: {
+	    ID: userId
+	  }
+	});
+      },
+
       getPostLayout(postId) {
         return Postmeta.findOne({
           where: {

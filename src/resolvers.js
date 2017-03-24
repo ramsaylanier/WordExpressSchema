@@ -21,7 +21,10 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       },
       postmeta(_, {postId}) {
         return Connectors.getPostmeta(postId);
-      }
+      },
+      user(_, {userId}) {
+        return Connectors.getUser(userId);
+      },
     },
     Category: {
       posts(category, args) {
@@ -37,6 +40,9 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       },
       thumbnail(post) {
         return Connectors.getPostThumbnail(post.id);
+      },
+      author(post) {
+        return Connectors.getUser(post.post_author);
       }
     },
     Postmeta: {
