@@ -1,9 +1,9 @@
-import gql from 'graphql-tag';
-import WordExpressClient from './client';
+import gql from 'graphql-tag'
+import WordExpressClient from './client'
 
 export function setLayout(nextState, replaceState, cb) {
-  const { page } = nextState.params;
-  const { Layouts } = nextState.routes[0];
+  const { page } = nextState.params
+  const { Layouts } = nextState.routes[0]
 
   return WordExpressClient.query({
     query: gql`
@@ -21,27 +21,27 @@ export function setLayout(nextState, replaceState, cb) {
       pageName: page || 'homepage'
     }
   }).then((graphQLResult) => {
-    const { errors, data } = graphQLResult;
-    let Layout;
+    const { errors, data } = graphQLResult
+    let Layout
 
     if (data.page) {
       if (data.page.layout) {
-        Layout = Layouts[data.page.layout.meta_value] || Layouts['Default'];
+        Layout = Layouts[data.page.layout.meta_value] || Layouts['Default']
       } else {
-        Layout = Layouts['Default'];
+        Layout = Layouts['Default']
       }
     } else {
-      Layout = Layouts['NotFound'];
+      Layout = Layouts['NotFound']
     }
 
-    this.layout = Layout;
-    this.component = Layout.Component;
-    cb();
+    this.layout = Layout
+    this.component = Layout.Component
+    cb()
 
     if (errors) {
-      console.log('got some GraphQL execution errors', errors);
+      console.log('got some GraphQL execution errors', errors)
     }
   }).catch((error) => {
-    console.log('there was an error sending the query', error);
-  });
+    console.log('there was an error sending the query', error)
+  })
 }

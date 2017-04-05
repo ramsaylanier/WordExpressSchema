@@ -88,6 +88,6 @@ const Definitions = `
   schema {
     query: Query
   }
-`;
+`
 
-export default [Definitions];
+export default [Definitions]

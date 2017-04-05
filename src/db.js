@@ -1,17 +1,17 @@
-import Sequelize from 'sequelize';
-import _ from 'lodash';
-import PHPUnserialize from 'php-unserialize';
+import Sequelize from 'sequelize'
+import _ from 'lodash'
+import PHPUnserialize from 'php-unserialize'
 
 export default class WordExpressDatabase {
   constructor(settings) {
-    this.settings = settings;
-    this.connection = this.connect(settings);
-    this.connectors = this.getConnectors();
-    this.models = this.getModels();
+    this.settings = settings
+    this.connection = this.connect(settings)
+    this.connectors = this.getConnectors()
+    this.models = this.getModels()
   }
 
   connect() {
-    const { name, username, password, host, port } = this.settings.privateSettings.database;
+    const { name, username, password, host, port } = this.settings.privateSettings.database
 
     const Conn = new Sequelize(
       name,
@@ -26,14 +26,14 @@ export default class WordExpressDatabase {
           freezeTableName: true,
         }
       }
-    );
+    )
 
-    return Conn;
+    return Conn
   }
 
   getModels() {
-    const prefix = this.settings.privateSettings.wp_prefix;
-    const Conn = this.connection;
+    const prefix = this.settings.privateSettings.wp_prefix
+    const Conn = this.connection
 
     return {
       Post: Conn.define(prefix + 'posts', {
@@ -56,10 +56,10 @@ export default class WordExpressDatabase {
       }),
       User: Conn.define(prefix + 'users', {
         id: { type: Sequelize.INTEGER, primaryKey: true },
-	user_nicename: { type: Sequelize.STRING },
-	user_email: { type: Sequelize.STRING },
-	user_registered: { type: Sequelize.STRING },
-	display_name: { type: Sequelize.STRING }
+        user_nicename: { type: Sequelize.STRING },
+        user_email: { type: Sequelize.STRING },
+        user_registered: { type: Sequelize.STRING },
+        display_name: { type: Sequelize.STRING }
       }),
       Terms: Conn.define(prefix + 'terms', {
         term_id: { type: Sequelize.INTEGER, primaryKey: true },
@@ -79,30 +79,25 @@ export default class WordExpressDatabase {
         parent: { type: Sequelize.INTEGER },
         count: { type: Sequelize.INTEGER },
       })
-    };
+    }
   }
 
   getConnectors() {
-    const { amazonS3, uploads } = this.settings.publicSettings;
-    const { Post, Postmeta, User, Terms, TermRelationships } = this.getModels();
+    const { amazonS3, uploads } = this.settings.publicSettings
+    const { Post, Postmeta, User, Terms, TermRelationships } = this.getModels()
 
-    Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'});
-    TermRelationships.belongsTo(Terms, {foreignKey: 'term_taxonomy_id'});
+    Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'})
+    TermRelationships.belongsTo(Terms, {foreignKey: 'term_taxonomy_id'})
 
-    TermRelationships.hasMany(Postmeta, {foreignKey: 'post_id'});
-    Postmeta.belongsTo(TermRelationships, {foreignKey: 'post_id'});
+    TermRelationships.hasMany(Postmeta, {foreignKey: 'post_id'})
+    Postmeta.belongsTo(TermRelationships, {foreignKey: 'post_id'})
 
-    TermRelationships.belongsTo(Post, {foreignKey: 'object_id'});
+    TermRelationships.belongsTo(Post, {foreignKey: 'object_id'})
 
-    Post.hasMany(Postmeta, {foreignKey: 'post_id'});
-    Postmeta.belongsTo(Post, {foreignKey: 'post_id'});
+    Post.hasMany(Postmeta, {foreignKey: 'post_id'})
+    Postmeta.belongsTo(Post, {foreignKey: 'post_id'})
 
     return {
-
-      getViewer() {
-        return viewer;
-      },
-
       getPosts({ post_type, limit = 10, skip = 0 }) {
         return Post.findAll({
           where: {
@@ -111,10 +106,10 @@ export default class WordExpressDatabase {
           },
           limit: limit,
           offset: skip
-        });
+        })
       },
 
-      getPostsInCategory(term_id, { post_type, limit = 10, skip = 0 }) {
+      getPostsInCategory(termId, { post_type, limit = 10, skip = 0 }) {
         return TermRelationships.findAll({
           attributes: [],
           include: [{
@@ -125,17 +120,17 @@ export default class WordExpressDatabase {
             }
           }],
           where: {
-            term_taxonomy_id: term_id
+            term_taxonomy_id: termId
           },
           limit: limit,
           offset: skip
-        }).then(posts => _.map(posts, post => post.wp_post));
+        }).then(posts => _.map(posts, post => post.wp_post))
       },
 
-      getCategoryById(term_id) {
+      getCategoryById(termId) {
         return Terms.findOne({
-          where: { term_id }
-        });
+          where: { termId }
+        })
       },
 
       getPostById(postId) {
@@ -146,8 +141,8 @@ export default class WordExpressDatabase {
           }
         }).then(post => {
           if (post) {
-            const { id } = post.dataValues;
-            post.dataValues.children = [];
+            const { id } = post.dataValues
+            post.dataValues.children = []
             return Post.findAll({
               attributes: ['id'],
               where: {
@@ -156,14 +151,14 @@ export default class WordExpressDatabase {
             }).then(childPosts => {
               if (childPosts.length > 0) {
                 _.map(childPosts, childPost => {
-                  post.dataValues.children.push({ id: Number(childPost.dataValues.id) });
-                });
+                  post.dataValues.children.push({ id: Number(childPost.dataValues.id) })
+                })
               }
-              return post;
-            });
+              return post
+            })
           }
-          return null;
-        });
+          return null
+        })
       },
 
       getPostByName(name) {
@@ -172,7 +167,7 @@ export default class WordExpressDatabase {
             post_status: 'publish',
             post_name: name
           }
-        });
+        })
       },
 
       getPostThumbnail(postId) {
@@ -183,7 +178,7 @@ export default class WordExpressDatabase {
           }
         }).then(res => {
           if (res) {
-            const meta_key = amazonS3 ? 'amazonS3_info' : '_wp_attached_file';
+            const metaKey = amazonS3 ? 'amazonS3_info' : '_wp_attached_file'
 
             return Post.findOne({
               where: {
@@ -192,41 +187,41 @@ export default class WordExpressDatabase {
               include: {
                 model: Postmeta,
                 where: {
-                  meta_key: meta_key
+                  meta_key: metaKey
                 },
                 limit: 1
               }
             }).then( post => {
               if (post.wp_postmeta[0]) {
-                const thumbnail = post.wp_postmeta[0].dataValues.meta_value;
+                const thumbnail = post.wp_postmeta[0].dataValues.meta_value
                 const thumbnailSrc = amazonS3 ?
                   uploads + PHPUnserialize.unserialize(thumbnail).key :
-                  uploads + thumbnail;
+                  uploads + thumbnail
 
-                return thumbnailSrc;
+                return thumbnailSrc
               }
-              return null;
-            });
+              return null
+            })
           }
-          return null;
-        });
+          return null
+        })
       },
 
       getUser(userId) {
         return User.findOne({
-	  where: {
-	    ID: userId
-	  }
-	});
+          where: {
+            ID: userId
+          }
+        })
       },
 
       getPostLayout(postId) {
         return Postmeta.findOne({
           where: {
             post_id: postId,
-            meta_key: 'wordexpress_page_fields_page_layout_component'
+            meta_key: 'page_layout_component'
           }
-        });
+        })
       },
 
       getPostmetaById(metaId, keys) {
@@ -237,7 +232,7 @@ export default class WordExpressDatabase {
               $in: keys
             }
           }
-        });
+        })
       },
 
       getPostmeta(postId, keys) {
@@ -248,7 +243,7 @@ export default class WordExpressDatabase {
               $in: keys
             }
           }
-        });
+        })
       },
 
       getMenu(name) {
@@ -269,62 +264,62 @@ export default class WordExpressDatabase {
               id: null,
               name: name,
               items: null,
-            };
-            menu.id = res.term_id;
-            const relationship = res.wp_term_relationships;
+            }
+            menu.id = res.term_id
+            const relationship = res.wp_term_relationships
             const posts = _.map(_.map(_.map(relationship, 'wp_post'), 'dataValues'), (post) => {
-              const postmeta = _.map(post.wp_postmeta, 'dataValues');
+              const postmeta = _.map(post.wp_postmeta, 'dataValues')
               const parentMenuId = _.map(_.filter(postmeta, meta => {
-                return meta.meta_key === '_menu_item_menu_item_parent';
-              }), 'meta_value');
-              post.post_parent = parseInt(parentMenuId[0]);
-              return post;
-            });
-            const navItems = [];
+                return meta.meta_key === '_menu_item_menu_item_parent'
+              }), 'meta_value')
+              post.post_parent = parseInt(parentMenuId[0])
+              return post
+            })
+            const navItems = []
 
             const parentIds = _.map(_.filter(posts, post => (
               post.post_parent === 0
-            )), 'id');
+            )), 'id')
 
             _.map(_.sortBy(posts, 'post_parent'), post => {
-              const navItem = {};
-              const postmeta = _.map(post.wp_postmeta, 'dataValues');
-              const isParent = _.includes( parentIds, post.id);
+              const navItem = {}
+              const postmeta = _.map(post.wp_postmeta, 'dataValues')
+              const isParent = _.includes( parentIds, post.id)
               const objectType = _.map(_.filter(postmeta, meta => {
-                return meta.meta_key === '_menu_item_object';
-              }), 'meta_value');
+                return meta.meta_key === '_menu_item_object'
+              }), 'meta_value')
               const linkedId = Number(_.map(_.filter(postmeta, meta => {
-                return meta.meta_key === '_menu_item_object_id';
-              }), 'meta_value'));
+                return meta.meta_key === '_menu_item_object_id'
+              }), 'meta_value'))
 
               if (isParent) {
-                navItem.id = post.id;
-                navItem.post_title = post.post_title;
-                navItem.order = post.menu_order;
-                navItem.linkedId = linkedId;
-                navItem.object_type = objectType;
-                navItem.children = [];
-                navItems.push(navItem);
+                navItem.id = post.id
+                navItem.post_title = post.post_title
+                navItem.order = post.menu_order
+                navItem.linkedId = linkedId
+                navItem.object_type = objectType
+                navItem.children = []
+                navItems.push(navItem)
               } else {
                 const parentId = Number(_.map(_.filter(postmeta, meta => {
-                  return meta.meta_key === '_menu_item_menu_item_parent';
-                }), 'meta_value'));
+                  return meta.meta_key === '_menu_item_menu_item_parent'
+                }), 'meta_value'))
                 const existing = navItems.filter((item) => (
                   item.id === parentId
-                ));
+                ))
 
                 if (existing.length) {
-                  existing[0].children.push({id: post.id, linkedId: linkedId });
+                  existing[0].children.push({id: post.id, linkedId: linkedId })
                 }
               }
 
-              menu.items = navItems;
-            });
-            return menu;
+              menu.items = navItems
+            })
+            return menu
           }
-          return null;
-        });
+          return null
+        })
       }
-    };
+    }
   }
 }
