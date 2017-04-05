@@ -222,6 +222,7 @@ Instead of defining your own GraphQL schema, you can use *WordExpressDefenitions
 ```es6
 import * as settings from '../settings/settings';
 import { WordExpressDefinitions, WordExpressDatabase, WordExpressResolvers } from 'wordexpress-schema';
+import {makeExecutableSchema} from 'graphql-tools';
 
 //returns WordExpressDatabase object that has provides connectors to the database;
 const Database = new WordExpressDatabase(settings);
@@ -233,80 +234,72 @@ const Resolvers = WordExpressResolvers(Connectors, settings.publicSettings);
 //GraphQL schema definitions
 const Definitions = WordExpressDefinitions;
 
-export { Connectors, Resolvers, Definitions };
+const executableSchema = makeExecutableSchema({
+  typeDefs: Definitions,
+  resolvers: Resolvers
+});
+
+export { Connectors, Resolvers, Definitions, executableSchema };
 ```
 
 The Schema is really just an array of GraphQL schema language string written in GraphQL type language. You can extend the schema by simply pushing new GraphQL strings into the array.
 
-###Building a Landing Page Component
-In this example, I'm using Apollo to query a fragment on User to find a page with the post_name(AKA slug) of "homepage". I'm getting the post_title, the post_content, and the thumbnail.
+Lastly, note that we use ```makeExecutableSchema``` and provide both the Definitions and the Resolvers. This is the schema that will be used by our GraphQL Server, (graphqlExpress).
+
+
+###Building the WordExpressPage component
+I've [developed a starter set of higher-order components](https://github.com/ramsaylanier/WordExpressComponents) that can be used to wrap display components. These components contain the GraphQL queries. Below is an example of the WordExpressPage component, which queries a WordPress database for pages.
 
 ```es6
-import React from 'react';
-import Page from '../pages/page.js';
-import PostContent from '../posts/PostContent';
-import { connect } from 'react-apollo';
+import React, {Component, PropTypes} from 'react';
+import { gql, graphql } from 'react-apollo';
 
-class FrontPageLayout extends React.Component{
+class WordExpressPage extends Component{
+	render() {
+    const {data} = this.props;
+    const {loading, post} = data
+    const {Layouts} = this.props.routes[0];
+    let Layout;
 
-  render(){
-    const { loading } = this.props.page;
-
-    if (loading){
-      return (
-        <div>Loading...</div>
-      )
-    } else {
-      const { post_title, post_content, thumbnail} = this.props.page.viewer.page;
-      let bg = {
-	backgroundImage: "url('" + thumbnail + "')"
+    if (!loading) {
+      if (!post){
+        Layout = Layouts['NotFound'];
+      } else if (post.layout){
+        Layout = Layouts[post.layout.meta_value] || Layouts['Default'];
+      } else {
+        Layout = Layouts['Default'];
       }
 
-      let heroClass = thumbnail ? "hero_thumbnail" : "hero"
+      return <Layout.Component page={post} layout={Layout}/>
+    }
 
-       return (
-         <div>
-  	   <div styleName={heroClass} style={bg}>
-  	     <div styleName="wrapper tight">
-  	       <h1 styleName="title">WordExpress</h1>
-  	       <h4 styleName="subtitle">WordPress using Node, Express, and React.</h4>
-  	     </div>
-  	   </div>
-
-  	   <div styleName="content">
-  	     <div styleName="wrapper tight">
-  	       <PostContent post_content={post_content}/>
-  	     </div>
-  	   </div>
-         </div>
-       )
-     }
-   }
+    return <div></div>
+  }
 }
 
-
-const FrontPageWithData = connect({
-  mapQueriesToProps({ ownProps, state}) {
-    return {
-      page: {
-        query: `
-          query getPage{
-            viewer{
-              page(post_name: "homepage"){
-                id,
-      	        post_title
-      	        post_content
-      		thumbnail
-              }
-            }
-          }
-        `
+const PageQuery = gql`
+  query getPage($page: String){
+    post(name: $page){
+      id,
+      post_title
+      post_content
+      thumbnail,
+      layout{
+        meta_value
       }
     }
   }
-})(FrontPageLayout);
+`;
 
-export default FrontPageWithData;
+const PageWithData = graphql(PageQuery, {
+  options: ({params}) => ({
+    variables: {
+      page: params.page || 'homepage'
+    }
+  })
+})(WordExpressPage)
+
+export default PageWithData;
 ```
 
 This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress).
@@ -314,30 +307,26 @@ This example comes directly from [WordExpress.io](http://wordexpress.io), an ope
 ##Using Definitions and Resolvers with Apollo Server
 This example is from the [WordExpress repo](https://github.com/ramsaylanier/WordPressExpress/blob/master/dev.js), using Webpack. First, we import the Definitions and Resolvers from our [schema.js file](https://github.com/ramsaylanier/WordPressExpress/blob/master/schema/schema.js). This file should look a lot like the end result of the example in the WordExpressDefinitions section, which exports the Connectors, Resolvers, and Definitions.
 
-After importing the Resolvers and Definitions, we pass them as arguments to ApolloServer. ApolloServer is Express middleware that provides a very easy way to set up a GraphQL server.
+We pass the entire executableSchema into graphqlExpress. graphqlExpress is Express middleware that provides a very easy way to set up a GraphQL server, as shown in the below example.
 
 ```es6
 ...
-import { apolloServer } from 'apollo-server';
-import { Definitions, Resolvers } from './schema/schema';
 import { privateSettings } from './settings/settings';
+import { graphqlExpress } from 'graphql-server-express';
+import { executableSchema } from './schema/schema';
+import bodyParser from 'body-parser';
 
 const APP_PORT = 3000;
 const GRAPHQL_PORT = 8080;
 
-const graphQLServer = express();
 let app = express();
 
-graphQLServer.use('/', apolloServer({
-  graphiql: true,
-  pretty: true,
-  schema: Definitions,
-  resolvers: Resolvers
+app.use('/graphql', bodyParser.json(), graphqlExpress({
+  schema: executableSchema
 }));
 
-graphQLServer.listen(GRAPHQL_PORT, () => console.log(
-  `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}`
-));
-
+app.listen(APP_PORT, () => {
+  console.log(`App is now running on http://localhost:${APP_PORT}`);
+});
 ...
 ```
