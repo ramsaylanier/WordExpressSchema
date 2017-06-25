@@ -3,7 +3,7 @@ This package is intended to be used with [Apollo Server](http://docs.apollostack
 
 For a full example, check out the repo for [WordExpress.io](https://github.com/ramsaylanier/WordpressExpress), which was built using this package.
 
-##Installation
+## Installation
 
 First, you must install and activate [WordExpress Companion WordPress Plugin](https://github.com/ramsaylanier/WordExpress-Plugin) in your WordPress build. This will populate some custom fields used for Page Layouts. If you don't want to use React Components for Page Layouts you can skip installing the plugin for now, but some more functionality will be added shortly so it's probably best to install it.
 
@@ -13,7 +13,7 @@ Then, in your node application:
 npm install --save-dev wordexpress-schema
 ```
 
-##Usage
+## Usage
 
 WordExpress Schema exports three things: **WordExpressDatabase**, **WordExpressResolvers**, and **WordExpressDefinitions**.
 
@@ -48,7 +48,7 @@ Below is detailed documentation on using both.
 * [Using Definitions and Resolvers with Apollo Server](#using-definitions-and-resolvers-with-apollo-server)
 
 
-##WordExpressDatabase
+## WordExpressDatabase
 The first part of WordExpress Schema is **WordExpressDatabase**. This class provides an easy connection to your WordPress database using some connection settings, explained below.
 
 Below is the basic implementation:
@@ -78,7 +78,7 @@ const Database = new WordExpressDatabase(settings);
 const Connectors = Database.connectors;
 ```
 
-###Connection Settings
+### Connection Settings
 
 In the above example, **WordExpressDatabase** is passed a settings object that contains some WordPress database settings. Name, username, password, and host are all self-explanatory.
 
@@ -87,11 +87,11 @@ WordExpress will work with Amazon S3; passing in a truthy value for amazonS3 wil
 Lastly, you can modify the wordpress database prefix. Some people don't use the default "wp_" prefix for various reasons. If that's you, I got your back.
 
 
-###The Database Class
+### The Database Class
 
 The Database class above contains the connectionDetails, the actual Sequelize connection, the database queries, and the database models. Really, all you need for GraphQL setup are the queries; however, if you'd like to extend queries with your own, the Database Models are exposed.
 
-####The Models
+#### The Models
 Here are the models and their definitions.  As you can see, for the Post model, not every column in the wp_posts table is included. I've included the most relevant columns; however because the Database class exposes the models, you can extend them to your liking.
 
 ```es6
@@ -133,7 +133,7 @@ TermTaxonomy: Conn.define(prefix + 'term_taxonomy', {
 })
 ```
 
-####The Queries
+#### The Queries
 
 In the above example, ConnQueries will give you the following:
 
@@ -173,7 +173,7 @@ Similar to getPosts, except the first argument accepts the id of a category.
 
 Returns a menu and all of its menu items where the name argument is the slug of your menu.
 
-####Extending Queries
+#### Extending Queries
 
 Extending the above example, it's possible to add your own queries (or even your own models). Here's an example:
 
@@ -197,7 +197,7 @@ Connectors.getCustomPosts = CustomPostsQuery;
 ...
 ```
 
-##WordExpressResolvers
+## WordExpressResolvers
 Resolvers are functions that tell the server how to find and return the data for each field in a GraphQL query. The resolving functions simply call your Database Connectors by passing in parameters and return the Connectors result (usually a Promise).
 
 After creating your Database and Connectors from WordExpressDatabase, you can call the WordExpressResolvers function by passing in the Connectors and your public application settings (since settings are stored in the application state). Building on the previous examples:
@@ -216,7 +216,7 @@ const Resolvers = WordExpressResolvers(Connectors, settings.publicSettings);
 
 Just like your Database models and connectors, you can add aditional Resolvers. In fact, if you do extend the WordExpress schema with your own queries, you'll have to. Refer to the [ApolloStack documentation on adding resolvers](http://docs.apollostack.com/apollo-server/resolvers.html#addResolveFunctionsToSchema).
 
-##WordExpressDefinitions
+## WordExpressDefinitions
 Instead of defining your own GraphQL schema, you can use *WordExpressDefenitions*. To extend upon the earlier example, this is how it's implemented:
 
 ```es6
@@ -247,7 +247,7 @@ The Schema is really just an array of GraphQL schema language string written in 
 Lastly, note that we use ```makeExecutableSchema``` and provide both the Definitions and the Resolvers. This is the schema that will be used by our GraphQL Server, (graphqlExpress).
 
 
-###Building the WordExpressPage component
+### Building the WordExpressPage component
 I've [developed a starter set of higher-order components](https://github.com/ramsaylanier/WordExpressComponents) that can be used to wrap display components. These components contain the GraphQL queries. Below is an example of the WordExpressPage component, which queries a WordPress database for pages.
 
 ```es6
@@ -304,7 +304,7 @@ export default PageWithData;
 
 This example comes directly from [WordExpress.io](http://wordexpress.io), an open-source project used to document the usage of this package. I urge you to clone the [WordExpress repo and play around with it yourself](https://github.com/ramsaylanier/WordPressExpress).
 
-##Using Definitions and Resolvers with Apollo Server
+## Using Definitions and Resolvers with Apollo Server
 This example is from the [WordExpress repo](https://github.com/ramsaylanier/WordPressExpress/blob/master/dev.js), using Webpack. First, we import the Definitions and Resolvers from our [schema.js file](https://github.com/ramsaylanier/WordPressExpress/blob/master/schema/schema.js). This file should look a lot like the end result of the example in the WordExpressDefinitions section, which exports the Connectors, Resolvers, and Definitions.
 
 We pass the entire executableSchema into graphqlExpress. graphqlExpress is Express middleware that provides a very easy way to set up a GraphQL server, as shown in the below example.
