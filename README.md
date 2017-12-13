@@ -31,6 +31,27 @@ npm install --save-dev wordexpress-schema
 
 * [Using Definitions and Resolvers with Apollo Server](#using-definitions-and-resolvers-with-apollo-server)
 
+* [Types](#types)
+
+  * [Post](#post)
+  
+  * [Postmeta](#postmeta)
+  
+  * [MetaType](#metatype)
+  
+  * [Category](#category)
+  
+  * [Menu](#menu)
+  
+  * [MenuItem](#menuitem)
+  
+  * [Setting](#setting)
+
+* [Inputs](#inputs)
+
+* [Queries](#queries)
+
+
 
 ## WordExpressDatabase
 The first part of WordExpress Schema is **WordExpressDatabase**. This class provides an easy connection to your WordPress database using some connection settings. Typically, you'll want to put the database in its own file in case you want to extend the Models.
