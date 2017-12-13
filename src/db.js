@@ -2,6 +2,8 @@ import Sequelize from 'sequelize'
 import _ from 'lodash'
 import PHPUnserialize from 'php-unserialize'
 
+const Op = Sequelize.Op
+
 export default class WordExpressDatabase {
   constructor(settings) {
     this.settings = settings
@@ -18,6 +20,7 @@ export default class WordExpressDatabase {
       username,
       password,
       {
+        logging: false,
         dialect: 'mysql',
         host: host,
         port: port || 3306,
@@ -45,6 +48,7 @@ export default class WordExpressDatabase {
         post_status: { type: Sequelize.STRING },
         post_type: { type: Sequelize.STRING },
         post_name: { type: Sequelize.STRING},
+        post_date: { type: Sequelize.STRING},
         post_parent: { type: Sequelize.INTEGER},
         menu_order: { type: Sequelize.INTEGER}
       }),
@@ -98,18 +102,26 @@ export default class WordExpressDatabase {
     Postmeta.belongsTo(Post, {foreignKey: 'post_id'})
 
     return {
-      getPosts({ post_type, limit = 10, skip = 0 }) {
+      getPosts({ post_type, order, limit = 10, skip = 0 }) {
+        const orderBy = order ? [order.orderBy, order.direction] : ['menu_order', 'ASC']
         return Post.findAll({
+          include: [{
+            model: Postmeta,
+          }],
           where: {
             post_type,
             post_status: 'publish'
           },
+          order: [orderBy],
           limit: limit,
           offset: skip
+        }).then(r => {
+          return r
         })
       },
 
       getPostsInCategory(termId, { post_type, limit = 10, skip = 0 }) {
+        console.log(post_type)
         return TermRelationships.findAll({
           attributes: [],
           include: [{
@@ -129,7 +141,9 @@ export default class WordExpressDatabase {
 
       getCategoryById(termId) {
         return Terms.findOne({
-          where: { termId }
+          where: {
+            term_id: termId
+          }
         })
       },
 
@@ -229,7 +243,7 @@ export default class WordExpressDatabase {
           where: {
             meta_id: metaId,
             meta_key: {
-              $in: keys
+              [Op.in]: keys.keys
             }
           }
         })
@@ -240,7 +254,7 @@ export default class WordExpressDatabase {
           where: {
             post_id: postId,
             meta_key: {
-              $in: keys
+              [Op.in]: keys.keys
             }
           }
         })
