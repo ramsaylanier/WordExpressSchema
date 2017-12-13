@@ -2,7 +2,6 @@ import Post from './post'
 
 const Postmeta = `
   type Postmeta {
-    id: Int
     meta_id: Int
     post_id: Int
     meta_key: String
