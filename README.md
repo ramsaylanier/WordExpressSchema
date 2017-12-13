@@ -29,10 +29,6 @@ npm install --save-dev wordexpress-schema
 
 * [Making an Executable Schema](#creating-the-schema)  
 
-* [Using WordExpress Definitions](#wordexpressdefinitions)
-
-   * [Example: Building A Landing Page component](#building-a-landing-page-component)
-
 * [Using Definitions and Resolvers with Apollo Server](#using-definitions-and-resolvers-with-apollo-server)
 
 
@@ -136,7 +132,7 @@ TermTaxonomy: Conn.define(prefix + 'term_taxonomy', {
 })
 ```
 
-## Making The Schema
+## Creating The Schema
 WordExpress uses [GraphQL Tools](https://github.com/apollographql/graphql-tools)'s [makeExecutableSchema](https://www.apollographql.com/docs/graphql-tools/generate-schema.html#makeExecutableSchema) to generate an executable schema. `makeExecutableSchema` requires type definitions and resolvers. WordExpress gives you both of those! Here's the basic implementation of the schema:
 
 ```es6
@@ -194,3 +190,205 @@ app.listen(PORT, () => {
   console.log(`wordexpress server is now running on port ${PORT}`)
 })
 ```
+
+## Types
+
+### Post
+```es6
+import Postmeta from './Postmeta'
+import User from './User'
+
+const Post = `
+  type Post {
+    id: Int
+    post_title: String
+    post_content: String
+    post_excerpt: String
+    post_status: String
+    post_type: String
+    post_name: String
+    post_parent: Int
+    post_date: String
+    menu_order: Int
+    post_author: Int
+    layout: Postmeta
+    thumbnail: String
+    post_meta(keys: [MetaType], after: String, first: Int, before: String, last: Int): [Postmeta]
+    author: User
+  }
+`
+
+export default () => [Post, Postmeta, User]
+```
+
+### Postmeta
+``` es6
+import Post from './post'
+
+const Postmeta = `
+  type Postmeta {
+    id: Int
+    meta_id: Int
+    post_id: Int
+    meta_key: String
+    meta_value: String
+    connecting_post: Post
+  }
+`
+
+export default () => [Postmeta, Post]
+```
+
+### MetaType
+```es6
+const MetaType = `
+  enum MetaType {
+    _thumbnail_id
+    _wp_attached_file
+    react_layout
+    amazonS3_info
+    order
+  }
+`
+
+export default MetaType
+```
+
+### Category
+``` es6
+import Post from './post'
+
+const Category = `
+  type Category {
+    term_id: Int!
+    name: String
+    slug: String
+    posts(post_type: String = "post", limit: Int, skip: Int): [Post]
+  }
+`
+
+export default () => [Category, Post]
+```
+
+### Menu
+```es6
+import MenuItem from './menuItem'
+
+const Menu = `
+  type Menu {
+    id: ID!
+    name: String
+    items: [MenuItem]
+  }
+`
+
+export default () => [Menu, MenuItem]
+```
+
+### MenuItem
+```es6
+import Post from './post'
+
+const MenuItem = `
+  type MenuItem {
+    id: ID!
+    post_title: String
+    linkedId: Int
+    object_type: String
+    order: Int
+    navitem: Post
+    children: [MenuItem]
+  }
+`
+
+export default () => [MenuItem, Post]
+```
+
+### Setting
+```es6
+const Setting = `
+  type Setting {
+    uploads: String
+    amazonS3: Boolean
+  }
+`
+
+export default Setting
+```
+
+## Inputs
+
+### OrderInput
+```es6
+const OrderInput = `
+  input OrderInput {
+    orderBy: String,
+    direction: String
+  }
+`
+
+export default OrderInput
+```
+
+
+## Queries
+WordExpress provides some out-of-the-box queries to do some basic stuff like getting posts, getting posts by category, getting a post by post_type, etc.
+
+### Posts
+```
+posts(post_type: String = "post", limit: Int, skip: Int, order: OrderInput): [Post]
+```
+
+You can query posts by `post_type`. If you don't provide a post_type, it will default to 'post'. You can also limit the results and skip results (allowing for pagination). Also, you can provide a custom sorting object to sort the results. Here's an example of sorting:
+
+<img width="1035" alt="screen shot 2017-12-13 at 12 31 14 pm" src="https://user-images.githubusercontent.com/2359852/33953187-258e7394-e002-11e7-9792-a4680d087cd7.png">
+
+#### Layouts for Pages and Posts
+Posts and pages can be assigned a Component to use as a layout. You can use the [WordExpress Companion Plugin](https://github.com/ramsaylanier/WordExpress-Plugin) for WordPress which will allow you to add the custom field to any page or post. Or you can add your own custom field. It needs to be called `page_layout_component`. Here's an example of the querying with a layout:
+
+<img width="1064" alt="screen shot 2017-12-13 at 12 41 43 pm" src="https://user-images.githubusercontent.com/2359852/33953467-11e93990-e003-11e7-9994-fb967a2acb4a.png">
+
+### Post
+```
+post(name: String, id: Int): Post
+```
+
+Returns a Post by either its ID or its name.
+
+<img width="1431" alt="screen shot 2017-12-13 at 12 57 05 pm" src="https://user-images.githubusercontent.com/2359852/33954058-306b90f0-e005-11e7-83fe-383c6ed490f6.png">
+
+### Menu
+```
+menus(name: String!): Menu
+```
+
+Returns a menu and the menu items associated with it, as well as children items. Uses the slug of the menu that is registered with WordPress.
+
+<img width="1065" alt="screen shot 2017-12-13 at 12 52 01 pm" src="https://user-images.githubusercontent.com/2359852/33953852-8479de64-e004-11e7-84b3-c51d84eb98fd.png">
+
+
+### Category
+```
+category(term_id: Int!): Category
+```
+
+Gets a category by its ID. Also capable of returning all posts with the category id. Here's an example:
+
+
+<img width="1373" alt="screen shot 2017-12-13 at 12 59 57 pm" src="https://user-images.githubusercontent.com/2359852/33954203-8f2031e6-e005-11e7-932b-fdc1d4321e53.png">
+
+### Postmeta
+```
+postmeta(post_id: Int!, keys:[MetaType]): [PostMeta]
+```
+Gets the postmeta of a post by the post id. 
+
+<img width="1088" alt="screen shot 2017-12-13 at 1 28 34 pm" src="https://user-images.githubusercontent.com/2359852/33955582-02546f98-e00a-11e7-8fcb-c106b9372b65.png">
+
+If `keys` are passed it, it will only return those keys which are part of the `MetaType`. Example:
+
+<img width="995" alt="screen shot 2017-12-13 at 1 32 49 pm" src="https://user-images.githubusercontent.com/2359852/33955614-2603bf98-e00a-11e7-9ce3-100b60190dd6.png">
+
+
+
+
