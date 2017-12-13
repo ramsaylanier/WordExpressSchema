@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize'
-import _ from 'lodash'
+import {map, filter, sortBy, includes} from 'lodash'
 import PHPUnserialize from 'php-unserialize'
 
 const Op = Sequelize.Op
@@ -121,7 +121,6 @@ export default class WordExpressDatabase {
       },
 
       getPostsInCategory(termId, { post_type, limit = 10, skip = 0 }) {
-        console.log(post_type)
         return TermRelationships.findAll({
           attributes: [],
           include: [{
@@ -136,7 +135,11 @@ export default class WordExpressDatabase {
           },
           limit: limit,
           offset: skip
-        }).then(posts => _.map(posts, post => post.wp_post))
+        }).then(posts => {
+          const p = map(posts, post => post.wp_post)
+          console.log(p)
+          return p
+        })
       },
 
       getCategoryById(termId) {
@@ -164,7 +167,7 @@ export default class WordExpressDatabase {
               }
             }).then(childPosts => {
               if (childPosts.length > 0) {
-                _.map(childPosts, childPost => {
+                map(childPosts, childPost => {
                   post.dataValues.children.push({ id: Number(childPost.dataValues.id) })
                 })
               }
@@ -250,13 +253,19 @@ export default class WordExpressDatabase {
       },
 
       getPostmeta(postId, keys) {
-        return Postmeta.findAll({
-          where: {
-            post_id: postId,
-            meta_key: {
-              [Op.in]: keys.keys
-            }
+
+        const condition = {
+          post_id: postId
+        }
+
+        if (keys){
+          condition.meta_key = {
+            [Op.in]: keys
           }
+        }
+
+        return Postmeta.findAll({
+          where: condition
         })
       },
 
@@ -281,9 +290,9 @@ export default class WordExpressDatabase {
             }
             menu.id = res.term_id
             const relationship = res.wp_term_relationships
-            const posts = _.map(_.map(_.map(relationship, 'wp_post'), 'dataValues'), (post) => {
-              const postmeta = _.map(post.wp_postmeta, 'dataValues')
-              const parentMenuId = _.map(_.filter(postmeta, meta => {
+            const posts = map(map(map(relationship, 'wp_post'), 'dataValues'), (post) => {
+              const postmeta = map(post.wp_postmeta, 'dataValues')
+              const parentMenuId = map(filter(postmeta, meta => {
                 return meta.meta_key === '_menu_item_menu_item_parent'
               }), 'meta_value')
               post.post_parent = parseInt(parentMenuId[0])
@@ -291,18 +300,18 @@ export default class WordExpressDatabase {
             })
             const navItems = []
 
-            const parentIds = _.map(_.filter(posts, post => (
+            const parentIds = map(filter(posts, post => (
               post.post_parent === 0
             )), 'id')
 
-            _.map(_.sortBy(posts, 'post_parent'), post => {
+            map(sortBy(posts, 'post_parent'), post => {
               const navItem = {}
-              const postmeta = _.map(post.wp_postmeta, 'dataValues')
-              const isParent = _.includes( parentIds, post.id)
-              const objectType = _.map(_.filter(postmeta, meta => {
+              const postmeta = map(post.wp_postmeta, 'dataValues')
+              const isParent = includes( parentIds, post.id)
+              const objectType = map(filter(postmeta, meta => {
                 return meta.meta_key === '_menu_item_object'
               }), 'meta_value')
-              const linkedId = Number(_.map(_.filter(postmeta, meta => {
+              const linkedId = Number(map(filter(postmeta, meta => {
                 return meta.meta_key === '_menu_item_object_id'
               }), 'meta_value'))
 
@@ -315,7 +324,7 @@ export default class WordExpressDatabase {
                 navItem.children = []
                 navItems.push(navItem)
               } else {
-                const parentId = Number(_.map(_.filter(postmeta, meta => {
+                const parentId = Number(map(filter(postmeta, meta => {
                   return meta.meta_key === '_menu_item_menu_item_parent'
                 }), 'meta_value'))
                 const existing = navItems.filter((item) => (

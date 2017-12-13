@@ -19,8 +19,8 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         }
         return Connectors.getPostById(id)
       },
-      postmeta(_, {postId}) {
-        return Connectors.getPostmeta(postId)
+      postmeta(_, {post_id, keys}) {
+        return Connectors.getPostmeta(post_id, keys)
       },
       user(_, {userId}) {
         return Connectors.getUser(userId)
