@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize'
-import {map, filter, sortBy, includes} from 'lodash'
+import {map, filter, sortBy, includes, orderBy} from 'lodash'
 import PHPUnserialize from 'php-unserialize'
 
 const Op = Sequelize.Op
@@ -105,9 +105,6 @@ export default class WordExpressDatabase {
       getPosts({ post_type, order, limit = 10, skip = 0 }) {
         const orderBy = order ? [order.orderBy, order.direction] : ['menu_order', 'ASC']
         return Post.findAll({
-          include: [{
-            model: Postmeta,
-          }],
           where: {
             post_type,
             post_status: 'publish'
@@ -252,13 +249,13 @@ export default class WordExpressDatabase {
         })
       },
 
-      getPostmeta(postId, keys) {
-
+      getPostmeta(postId, {keys}) {
         const condition = {
           post_id: postId
         }
 
-        if (keys){
+
+        if (keys && keys.length > 0){
           condition.meta_key = {
             [Op.in]: keys
           }
@@ -278,7 +275,10 @@ export default class WordExpressDatabase {
             model: TermRelationships,
             include: [{
               model: Post,
-              include: [Postmeta]
+              attributes: ['post_parent', 'id', 'menu_order'],
+              include: [{
+                model: Postmeta
+              }]
             }]
           }]
         }).then(res => {
@@ -290,19 +290,23 @@ export default class WordExpressDatabase {
             }
             menu.id = res.term_id
             const relationship = res.wp_term_relationships
-            const posts = map(map(map(relationship, 'wp_post'), 'dataValues'), (post) => {
-              const postmeta = map(post.wp_postmeta, 'dataValues')
-              const parentMenuId = map(filter(postmeta, meta => {
-                return meta.meta_key === '_menu_item_menu_item_parent'
-              }), 'meta_value')
-              post.post_parent = parseInt(parentMenuId[0])
-              return post
-            })
+            const posts = map(
+              map(map(relationship, 'wp_post'),'dataValues'), (post) => {
+                const postmeta = map(post.wp_postmeta, 'dataValues')
+                const parentMenuId = map(filter(postmeta, meta => {
+                  return meta.meta_key === '_menu_item_menu_item_parent'
+                }), 'meta_value')
+                post.post_parent = parseInt(parentMenuId[0])
+                return post
+              })
+
             const navItems = []
 
             const parentIds = map(filter(posts, post => (
               post.post_parent === 0
             )), 'id')
+
+            console.log(parentIds)
 
             map(sortBy(posts, 'post_parent'), post => {
               const navItem = {}
@@ -336,9 +340,11 @@ export default class WordExpressDatabase {
                 }
               }
 
-              menu.items = navItems
+              menu.items = orderBy(navItems, 'order')
             })
+            console.log(menu)
             return menu
+
           }
           return null
         })
