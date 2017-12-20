@@ -43,6 +43,9 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       },
       author(post) {
         return Connectors.getUser(post.post_author)
+      },
+      categories(post) {
+        return Connectors.getPostCategories(post.id)
       }
     },
     Postmeta: {
