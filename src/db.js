@@ -88,7 +88,7 @@ export default class WordExpressDatabase {
 
   getConnectors() {
     const { amazonS3, uploads } = this.settings.publicSettings
-    const { Post, Postmeta, User, Terms, TermRelationships } = this.getModels()
+    const { Post, Postmeta, User, Terms, TermRelationships, TermTaxonomy } = this.getModels()
 
     Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'})
     TermRelationships.belongsTo(Terms, {foreignKey: 'term_taxonomy_id'})
@@ -134,8 +134,22 @@ export default class WordExpressDatabase {
           offset: skip
         }).then(posts => {
           const p = map(posts, post => post.wp_post)
-          console.log(p)
           return p
+        })
+      },
+
+      getPostCategories(postId) {
+        return TermRelationships.findAll({
+          where: {
+            object_id: postId,
+          },
+          include: [{
+            model: Terms
+          }]
+        }).then(relationships => {
+          return relationships.map(r => {
+            return r.dataValues.wp_term
+          })
         })
       },
 
@@ -192,7 +206,8 @@ export default class WordExpressDatabase {
           }
         }).then(res => {
           if (res) {
-            const metaKey = amazonS3 ? 'amazonS3_info' : '_wp_attached_file'
+            const metaKeys = amazonS3 ? ['amazonS3_info'] : ['_wp_attached_file']
+            metaKeys.push('_wp_attachment_metadata')
 
             return Post.findOne({
               where: {
@@ -201,18 +216,34 @@ export default class WordExpressDatabase {
               include: {
                 model: Postmeta,
                 where: {
-                  meta_key: metaKey
+                  meta_key: {
+                    [Op.in]: metaKeys
+                  }
                 },
-                limit: 1
+                limit: 2
               }
             }).then( post => {
-              if (post.wp_postmeta[0]) {
-                const thumbnail = post.wp_postmeta[0].dataValues.meta_value
+              const file = post.wp_postmeta[0].dataValues.meta_value
+              const fileMeta = post.wp_postmeta[1].dataValues.meta_value
+              
+              if (file) {
+    
                 const thumbnailSrc = amazonS3 ?
-                  uploads + PHPUnserialize.unserialize(thumbnail).key :
-                  uploads + thumbnail
+                  uploads + PHPUnserialize.unserialize(file).key :
+                  uploads + file
 
-                return thumbnailSrc
+                const thumbMeta = PHPUnserialize.unserialize(fileMeta)
+                const sizes = map(thumbMeta.sizes, (size, key) => {
+                  return {
+                    size: key,
+                    file: size.file
+                  }
+                })
+
+                return {
+                  src: thumbnailSrc,
+                  sizes: sizes
+                }
               }
               return null
             })
@@ -306,8 +337,6 @@ export default class WordExpressDatabase {
               post.post_parent === 0
             )), 'id')
 
-            console.log(parentIds)
-
             map(sortBy(posts, 'post_parent'), post => {
               const navItem = {}
               const postmeta = map(post.wp_postmeta, 'dataValues')
@@ -342,7 +371,6 @@ export default class WordExpressDatabase {
 
               menu.items = orderBy(navItems, 'order')
             })
-            console.log(menu)
             return menu
 
           }

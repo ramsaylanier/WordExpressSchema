@@ -1,5 +1,6 @@
-import Postmeta from './Postmeta'
-import User from './User'
+import Postmeta from './postmeta'
+import User from './user'
+import Thumbnail from './thumbnail'
 
 const Post = `
   type Post {
@@ -15,10 +16,11 @@ const Post = `
     menu_order: Int
     post_author: Int
     layout: Postmeta
-    thumbnail: String
+    thumbnail: Thumbnail
+    categories: [Category]
     post_meta(keys: [MetaType], after: String, first: Int, before: String, last: Int): [Postmeta]
     author: User
   }
 `
 
-export default () => [Post, Postmeta, User]
+export default () => [Post, Postmeta, User, ...Thumbnail]
