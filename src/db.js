@@ -123,7 +123,6 @@ export default class WordExpressDatabase {
           include: [{
             model: Post,
             where: {
-              post_type: post_type,
               post_status: 'publish'
             }
           }],
