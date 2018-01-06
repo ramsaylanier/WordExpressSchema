@@ -1,6 +1,8 @@
 import Sequelize from 'sequelize'
-import {map, filter, sortBy, includes, orderBy} from 'lodash'
+import {map} from 'lodash'
 import PHPUnserialize from 'php-unserialize'
+import shapeMenu from './shapers/shapeMenu'
+
 
 const Op = Sequelize.Op
 
@@ -312,68 +314,7 @@ export default class WordExpressDatabase {
             }]
           }]
         }).then(res => {
-          if (res) {
-            const menu = {
-              id: null,
-              name: name,
-              items: null,
-            }
-            menu.id = res.term_id
-            const relationship = res.wp_term_relationships
-            const posts = map(
-              map(map(relationship, 'wp_post'),'dataValues'), (post) => {
-                const postmeta = map(post.wp_postmeta, 'dataValues')
-                const parentMenuId = map(filter(postmeta, meta => {
-                  return meta.meta_key === '_menu_item_menu_item_parent'
-                }), 'meta_value')
-                post.post_parent = parseInt(parentMenuId[0])
-                return post
-              })
-
-            const navItems = []
-
-            const parentIds = map(filter(posts, post => (
-              post.post_parent === 0
-            )), 'id')
-
-            map(sortBy(posts, 'post_parent'), post => {
-              const navItem = {}
-              const postmeta = map(post.wp_postmeta, 'dataValues')
-              const isParent = includes( parentIds, post.id)
-              const objectType = map(filter(postmeta, meta => {
-                return meta.meta_key === '_menu_item_object'
-              }), 'meta_value')
-              const linkedId = Number(map(filter(postmeta, meta => {
-                return meta.meta_key === '_menu_item_object_id'
-              }), 'meta_value'))
-
-              if (isParent) {
-                navItem.id = post.id
-                navItem.post_title = post.post_title
-                navItem.order = post.menu_order
-                navItem.linkedId = linkedId
-                navItem.object_type = objectType
-                navItem.children = []
-                navItems.push(navItem)
-              } else {
-                const parentId = Number(map(filter(postmeta, meta => {
-                  return meta.meta_key === '_menu_item_menu_item_parent'
-                }), 'meta_value'))
-                const existing = navItems.filter((item) => (
-                  item.id === parentId
-                ))
-
-                if (existing.length) {
-                  existing[0].children.push({id: post.id, linkedId: linkedId })
-                }
-              }
-
-              menu.items = orderBy(navItems, 'order')
-            })
-            return menu
-
-          }
-          return null
+          return shapeMenu(name, res)
         })
       }
     }
