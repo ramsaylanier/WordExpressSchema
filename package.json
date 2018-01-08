@@ -30,6 +30,7 @@
   "dependencies": {
     "lodash": "^4.13.1",
     "mysql2": "^1.5.1",
+    "nodemon": "^1.14.9",
     "php-unserialize": "0.0.1",
     "sequelize": "^4.28.0"
   },
