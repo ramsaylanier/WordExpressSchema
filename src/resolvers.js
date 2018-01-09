@@ -4,9 +4,9 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       settings() {
         return publicSettings
       },
-      category(_, { term_id }) {
-        return Connectors.getCategoryById(term_id)
-      },
+      category(_, { term_id, name }) {
+        return Connectors.getTerm(term_id, name)
+      }, 
       posts(_, args) {
         return Connectors.getPosts(args)
       },
@@ -14,11 +14,8 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         return Connectors.getMenu(name)
       },
       post(_, {name, id}) {
-        if (name) {
-          return Connectors.getPostByName(name, id)
-        }
-        return Connectors.getPostById(id)
-      },
+        return Connectors.getPost(id, name)
+      }, 
       postmeta(_, {post_id, keys}) {
         return Connectors.getPostmeta(post_id, keys)
       },
@@ -28,7 +25,7 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
     },
     Category: {
       posts(category, args) {
-        return Connectors.getPostsInCategory(category.term_id, args)
+        return Connectors.getTermPosts(category.term_id, args)
       }
     },
     Post: {
@@ -45,12 +42,12 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         return Connectors.getUser(post.post_author)
       },
       categories(post) {
-        return Connectors.getPostCategories(post.id)
+        return Connectors.getPostTerms(post.id)
       }
     },
     Postmeta: {
       connecting_post(postmeta) {
-        return Connectors.getPostById(postmeta.meta_value)
+        return Connectors.getPost(postmeta.meta_value)
       }
     },
     Menu: {
@@ -60,7 +57,7 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
     },
     MenuItem: {
       navitem(menuItem) {
-        return Connectors.getPostById(menuItem.linkedId)
+        return Connectors.getPost(menuItem.linkedId)
       },
       children(menuItem) {
         return menuItem.children

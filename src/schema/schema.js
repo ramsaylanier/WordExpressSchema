@@ -11,7 +11,7 @@ const RootQuery = `
     posts(post_type: String = "post", limit: Int, skip: Int, order: OrderInput): [Post]
     menus(name: String!): Menu
     post(name: String, id: Int): Post
-    category(term_id: Int!): Category
+    category(term_id: Int, name: String): Category
     postmeta(post_id: Int!, keys: [MetaType]): [Postmeta]
     user(id: Int): User
   }
