@@ -1,4 +1,10 @@
-#4.0.0
+# 4.1.0
+
+- Added posts to User schema
+- Changed post_type argument for `Posts` queries from `String` to `[String]` to allow for querying posts by multiple post types
+- Query User by id and name, instead of just id
+
+# 4.0.0
 
 ## Non-breaking Changes
 
