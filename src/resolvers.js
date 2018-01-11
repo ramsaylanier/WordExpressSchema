@@ -19,8 +19,8 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       postmeta(_, {post_id, keys}) {
         return Connectors.getPostmeta(post_id, keys)
       },
-      user(_, {userId}) {
-        return Connectors.getUser(userId)
+      user(_, {id, name}) {
+        return Connectors.getUser({id, name})
       },
     },
     Category: {
@@ -39,7 +39,7 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         return Connectors.getPostThumbnail(post.id)
       },
       author(post) {
-        return Connectors.getUser(post.post_author)
+        return Connectors.getUser({userId: post.post_author})
       },
       categories(post) {
         return Connectors.getPostTerms(post.id)
@@ -62,6 +62,15 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       children(menuItem) {
         return menuItem.children
       }
+    },
+    User: {
+      posts(user, args) {
+        const a = {
+          ...args,
+          userId: user.id
+        }
+        return Connectors.getPosts(a)
+      },
     }
   }
 

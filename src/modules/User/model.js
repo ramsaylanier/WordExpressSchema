@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize'
 
 export default function (Conn, prefix) {
-  return Conn.define(prefix + 'user', {
+  return Conn.define(prefix + 'users', {
     id: { type: Sequelize.INTEGER, primaryKey: true },
     user_nicename: { type: Sequelize.STRING },
     user_email: { type: Sequelize.STRING },
