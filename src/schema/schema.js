@@ -8,12 +8,12 @@ import OrderInput from './inputs/orderInput'
 const RootQuery = `
   type Query {
     settings: Setting
-    posts(post_type: String = "post", limit: Int, skip: Int, order: OrderInput): [Post]
+    posts(post_type: [String], limit: Int, skip: Int, order: OrderInput, userId: Int): [Post]
     menus(name: String!): Menu
     post(name: String, id: Int): Post
     category(term_id: Int, name: String): Category
     postmeta(post_id: Int!, keys: [MetaType]): [Postmeta]
-    user(id: Int): User
+    user(name: String, id: Int): User
   }
 `
 

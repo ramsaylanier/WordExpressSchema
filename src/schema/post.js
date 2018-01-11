@@ -14,7 +14,6 @@ const Post = `
     post_parent: Int
     post_date: String
     menu_order: Int
-    post_author: Int
     layout: Postmeta
     thumbnail: Thumbnail
     categories: [Category]
