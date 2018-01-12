@@ -9,10 +9,11 @@ const RootQuery = `
   type Query {
     settings: Setting
     posts(post_type: [String], limit: Int, skip: Int, order: OrderInput, userId: Int): [Post]
-    menus(name: String!): Menu
     post(name: String, id: Int): Post
-    category(term_id: Int, name: String): Category
+    attachments(ids: [Int]): [Thumbnail]
     postmeta(post_id: Int!, keys: [MetaType]): [Postmeta]
+    menus(name: String!): Menu
+    category(term_id: Int, name: String): Category
     user(name: String, id: Int): User
   }
 `

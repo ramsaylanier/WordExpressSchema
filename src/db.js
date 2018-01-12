@@ -12,6 +12,7 @@ import PostmetaConnectors from './modules/Postmeta/connectors'
 import TermConnectors from './modules/Term/connectors'
 import UserConnectors from './modules/User/connectors'
 import MenuConnectors from './modules/Menu/connectors'
+import ThumbnailConnectors from './modules/Thumbnail/connectors'
  
 export default class WordExpressDatabase {
   constructor(settings) {
@@ -77,7 +78,8 @@ export default class WordExpressDatabase {
       ...PostmetaConnectors(models),
       ...TermConnectors(models),
       ...UserConnectors(models),
-      ...MenuConnectors(models)
+      ...MenuConnectors(models),
+      ...ThumbnailConnectors(models, this.settings)
     }
   }
 }

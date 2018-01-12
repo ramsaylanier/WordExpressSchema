@@ -10,18 +10,21 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       posts(_, args) {
         return Connectors.getPosts(args)
       },
-      menus(_, {name}) {
-        return Connectors.getMenu(name)
-      },
       post(_, {name, id}) {
         return Connectors.getPost(id, name)
       }, 
       postmeta(_, {post_id, keys}) {
         return Connectors.getPostmeta(post_id, keys)
       },
+      menus(_, {name}) {
+        return Connectors.getMenu(name)
+      },
       user(_, {id, name}) {
         return Connectors.getUser({id, name})
       },
+      attachments(_, {ids}) {
+        return Connectors.getThumbnails(ids)
+      }
     },
     Category: {
       posts(category, args) {

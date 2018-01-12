@@ -1,5 +1,6 @@
 const Thumbnail = `
   type Thumbnail {
+    id: Int
     src: String
     sizes: [ThumbnailSize]
   }
