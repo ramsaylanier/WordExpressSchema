@@ -1,3 +1,7 @@
+# 4.2.0
+
+- Added `attachments` query for getting a list of Thumbnails by ID (used for things like galleries)
+
 # 4.1.0
 
 - Added posts to User schema
