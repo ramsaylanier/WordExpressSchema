@@ -3,8 +3,9 @@ import {map} from 'lodash'
 
 export default function (thumbnail, settings) {
   const {amazonS3, uploads} = settings.publicSettings
-  const file = thumbnail.wp_postmeta[0].dataValues.meta_value
-  const fileMeta = thumbnail.wp_postmeta[1].dataValues.meta_value
+  const {wp_prefix} = settings.privateSettings
+  const file = thumbnail[`${wp_prefix}postmeta`][0].dataValues.meta_value
+  const fileMeta = thumbnail[`${wp_prefix}postmeta`][1].dataValues.meta_value
   
   if (file) {
 
