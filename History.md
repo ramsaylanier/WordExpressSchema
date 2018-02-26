@@ -1,3 +1,7 @@
+# 4.2.2
+
+- Fixed issue with `shapeThumbnail` and postmeta ordering - #18. 
+
 # 4.2.1
 
 - Fixed issue wuth `shapeThumbnail` not using the `wp_prefix` setting
