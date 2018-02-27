@@ -1,3 +1,8 @@
+# 4.2.3
+
+- Fixed issue with Post Categories and Category Posts not using wp_prefix setting.
+- Provide default order by date and post type for Category Posts.
+
 # 4.2.2
 
 - Fixed issue with `shapeThumbnail` and postmeta ordering - #18. 
