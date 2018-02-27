@@ -5,7 +5,7 @@ const Category = `
     term_id: Int!
     name: String
     slug: String
-    posts(post_type: String = "post", limit: Int, skip: Int): [Post]
+    posts(post_type: String = "post", limit: Int, skip: Int, order: OrderInput): [Post]
   }
 `
 
