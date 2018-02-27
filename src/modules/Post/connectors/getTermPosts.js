@@ -1,6 +1,8 @@
 import {map} from 'lodash'
 
-export default function (TermRelationships, Post){
+export default function (TermRelationships, Post, settings){
+  const {wp_prefix} = settings.privateSettings
+
   return function(termId, { limit = 10, skip = 0 }) {
     return TermRelationships.findAll({
       attributes: [],
@@ -16,7 +18,7 @@ export default function (TermRelationships, Post){
       limit: limit,
       offset: skip
     }).then(posts => {
-      const p = map(posts, post => post.wp_post)
+      const p = map(posts, post => post[`${wp_prefix}post`])
       return p
     })
   }
