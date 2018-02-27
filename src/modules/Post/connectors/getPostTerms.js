@@ -1,4 +1,6 @@
-export default function (Terms, TermRelationships) {
+export default function (Terms, TermRelationships, settings) {
+  const {wp_prefix} = settings.privateSettings
+
   return function(postId) {
     return TermRelationships.findAll({
       where: {
@@ -9,7 +11,7 @@ export default function (Terms, TermRelationships) {
       }]
     }).then(relationships => {
       return relationships.map(r => {
-        return r.dataValues.wp_term
+        return r.dataValues[`${wp_prefix}term`]
       })
     })
   }
