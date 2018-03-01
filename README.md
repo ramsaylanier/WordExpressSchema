@@ -402,7 +402,7 @@ Gets a category by its ID. Also capable of returning all posts with the category
 
 ### Postmeta
 ```
-postmeta(post_id: Int!, keys:[MetaType]): [PostMeta]
+postmeta(post_id: Int!, keys:[MetaType]): [Postmeta]
 ```
 Gets the postmeta of a post by the post id. 
 

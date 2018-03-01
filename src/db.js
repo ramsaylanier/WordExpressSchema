@@ -2,7 +2,7 @@ import Sequelize from 'sequelize'
 
 // MODELS
 import PostModel from './modules/Post/model'
-import PostmetaModel from './modules/PostMeta/model'
+import PostmetaModel from './modules/Postmeta/model'
 import UserModel from './modules/User/model'
 import {TermModel, TermRelationshipModel, TermTaxonomyModel} from './modules/Term/model'
 
