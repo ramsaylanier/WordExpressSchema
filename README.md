@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/wordexpress-schema.svg)](https://badge.fury.io/js/wordexpress-schema)
+
 # wordexpress-schema
 
 WordExpress Schema provides the following:
