@@ -4,9 +4,9 @@
 
 - Restructured application, connectors and models out of db.js and into their own modules
 
-## 4.2.4
+## 4.3
 
-- Fixed type in Postmeta causing import issues on some systems.
+- Fixed typo in Postmeta causing import issues on some systems.
 
 ## 4.2.3
 
