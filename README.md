@@ -184,32 +184,21 @@ This example is from the [WordExpress Server](https://github.com/ramsaylanier/Wo
 After creating an executable schema, all we need to do is provide the schema to [apollo-server-express](https://www.apollographql.com/docs/apollo-server/servers/express.html).
 
 ```es6
-import express from 'express'
-import {graphqlExpress, graphiqlExpress} from 'apollo-server-express'
-import bodyParser from 'body-parser'
-import graphqlSchema from './schema'
+import {ApolloServer} from 'apollo-server'
+import {WordExpressDefinitions, WordExpressResolvers} from 'wordexpress-schema'
+import {connectors} from './db'
+import Config from 'config'
 
 const PORT = 4000
-const app = express()
 
-app.use(
-  '/graphql',
-  bodyParser.json(),
-  graphqlExpress(req => {
-    return({
-      schema: graphqlSchema
-    })
-  })
-)
- 
-app.use(
-  '/graphiql',
-  graphiqlExpress({
-    endpointURL: '/graphql',
-  })
-)
+const resolvers = WordExpressResolvers(connectors, Config.get('public'))
 
-app.listen(PORT, () => {
+const server = new ApolloServer({
+  typeDefs: [...WordExpressDefinitions],
+  resolvers
+})
+
+server.listen({port: PORT}, () => {
   console.log(`wordexpress server is now running on port ${PORT}`)
 })
 ```
