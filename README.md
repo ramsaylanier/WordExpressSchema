@@ -4,13 +4,13 @@
 
 WordExpress Schema provides the following:
 
-- **WordExpress Database**: provides a connection to your WordPress database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. These queries function as connectors and are used in the WordExpressResolvers resolving functions.
+- **WordExpress Database**: provides a connection to your WordPress database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. 
 
-- **WordExpress Resolvers**: resolving functions that work with the WordExpress Database connectors to resolver GraphQL Queries
+- **WordExpress Resolvers**: resolving functions that work with the `WordExpressDatabase` connectors to resolve GraphQL queries
 
-- **WordExpress Definitions**: a module GraphQL Schema based on the queries provided to it from WordExpressDatabase. With the schema, you can do things like Find Posts by post_type, get the Postmeta of a Post by the post_id, and so on.
+- **WordExpress Definitions**: a modular GraphQL schema definition.
 
-This package is intended to be used with [Apollo Server](https://www.apollographql.com/docs/apollo-server/) to provide an easy way to setup a GraphQL server and connect it to your WordPress database. Note that Apollo Server is not a depenedecy of this package. An example of using this package with Apollo Server and Webpack is provided below.
+Combined, this package can be used with any GraphQL server (like [Apollo Server](https://www.apollographql.com/docs/apollo-server/)) to provide an easy connection to your WordPress database. An example of using this package with Apollo Server and Webpack is provided below.
 
 ## Installation
 
