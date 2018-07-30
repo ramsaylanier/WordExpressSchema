@@ -2,7 +2,9 @@
 
 # wordexpress-schema
 
-WordExpress Schema provides the following:
+WordExpress Schema is a GraphQL schema that is modeled off of how WordPress stores data in a MySQL database. It provides modular GraphQL type definitions and GraphQL query resolvers, as well as an easy connection to a WordPress database.
+
+WordExpress Schema exports the following:
 
 - **WordExpress Database**: provides a connection to your WordPress database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. 
 
@@ -11,6 +13,8 @@ WordExpress Schema provides the following:
 - **WordExpress Definitions**: a modular GraphQL schema definition.
 
 Combined, this package can be used with any GraphQL server (like [Apollo Server](https://www.apollographql.com/docs/apollo-server/)) to provide an easy connection to your WordPress database. An example of using this package with Apollo Server and Webpack is provided below.
+
+If you'd like a solution that already includes a GraphQL server for you, check out the [WordExpress Server repository](https://github.com/ramsaylanier/WordExpress-Server). WordExpress Server uses `WordExpress Schema` and provides you with a GraphQL server out of the box. 
 
 ## Installation
 
