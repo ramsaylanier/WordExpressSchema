@@ -2,15 +2,19 @@
 
 # wordexpress-schema
 
-WordExpress Schema provides the following:
+WordExpress Schema is a GraphQL schema that is modeled off of how WordPress stores data in a MySQL database. It provides modular GraphQL type definitions and GraphQL query resolvers, as well as an easy connection to a WordPress database.
 
-- **WordExpress Database**: provides a connection to your WordPress database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. These queries function as connectors and are used in the WordExpressResolvers resolving functions.
+WordExpress Schema exports the following:
 
-- **WordExpress Resolvers**: resolving functions that work with the WordExpress Database connectors to resolver GraphQL Queries
+- **WordExpress Database**: provides a connection to your WordPress database and returns some models and queries using Sequelize. These queries replace MYSQL queries, and return promises. 
 
-- **WordExpress Definitions**: a module GraphQL Schema based on the queries provided to it from WordExpressDatabase. With the schema, you can do things like Find Posts by post_type, get the Postmeta of a Post by the post_id, and so on.
+- **WordExpress Resolvers**: resolving functions that work with the `WordExpressDatabase` connectors to resolve GraphQL queries
 
-This package is intended to be used with [Apollo Server](https://www.apollographql.com/docs/apollo-server/) to provide an easy way to setup a GraphQL server and connect it to your WordPress database. Note that Apollo Server is not a depenedecy of this package. An example of using this package with Apollo Server and Webpack is provided below.
+- **WordExpress Definitions**: a modular GraphQL schema definition.
+
+Combined, this package can be used with any GraphQL server (like [Apollo Server](https://www.apollographql.com/docs/apollo-server/)) to provide an easy connection to your WordPress database. An example of using this package with Apollo Server and Webpack is provided below.
+
+If you'd like a solution that already includes a GraphQL server for you, check out the [WordExpress Server repository](https://github.com/ramsaylanier/WordExpress-Server). WordExpress Server uses `WordExpress Schema` and provides you with a GraphQL server out of the box. 
 
 ## Installation
 
@@ -184,32 +188,21 @@ This example is from the [WordExpress Server](https://github.com/ramsaylanier/Wo
 After creating an executable schema, all we need to do is provide the schema to [apollo-server-express](https://www.apollographql.com/docs/apollo-server/servers/express.html).
 
 ```es6
-import express from 'express'
-import {graphqlExpress, graphiqlExpress} from 'apollo-server-express'
-import bodyParser from 'body-parser'
-import graphqlSchema from './schema'
+import {ApolloServer} from 'apollo-server'
+import {WordExpressDefinitions, WordExpressResolvers} from 'wordexpress-schema'
+import {connectors} from './db'
+import Config from 'config'
 
 const PORT = 4000
-const app = express()
 
-app.use(
-  '/graphql',
-  bodyParser.json(),
-  graphqlExpress(req => {
-    return({
-      schema: graphqlSchema
-    })
-  })
-)
- 
-app.use(
-  '/graphiql',
-  graphiqlExpress({
-    endpointURL: '/graphql',
-  })
-)
+const resolvers = WordExpressResolvers(connectors, Config.get('public'))
 
-app.listen(PORT, () => {
+const server = new ApolloServer({
+  typeDefs: [...WordExpressDefinitions],
+  resolvers
+})
+
+server.listen({port: PORT}, () => {
   console.log(`wordexpress server is now running on port ${PORT}`)
 })
 ```
