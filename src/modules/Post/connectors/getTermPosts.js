@@ -20,7 +20,7 @@ export default function (TermRelationships, Post, TermTaxonomy, settings){
       })
       .then(function (posts) {
         const p = posts.map(post => post.term_taxonomy_id)
-		termIds.push(...p)
+        termIds.push(...p)
         return p;
       })
       .then(getTermIds)
