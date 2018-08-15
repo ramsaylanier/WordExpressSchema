@@ -48,7 +48,7 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         return Connectors.getPostTerms(post.id)
       },
       post_excerpt: function post_excerpt(post, { excerpt_length }) {
-        return post.post_excerpt || post.post_content.split(' ').slice(0, excerpt_length).join(' ')
+        return post.post_excerpt || post.post_content.split(' ').slice(0, excerpt_length || 55).join(' ')
       }
     },
     Postmeta: {
