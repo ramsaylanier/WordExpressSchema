@@ -7,7 +7,7 @@ const Post = `
     id: Int
     post_title: String
     post_content: String
-    post_excerpt: String
+    post_excerpt(excerpt_length: Int): String
     post_status: String
     post_type: String
     post_name: String
