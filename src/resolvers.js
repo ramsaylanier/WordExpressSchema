@@ -46,6 +46,9 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       },
       categories(post) {
         return Connectors.getPostTerms(post.id)
+      },
+      children(post) {
+        return Connectors.getPostChildren(post)
       }
     },
     Postmeta: {

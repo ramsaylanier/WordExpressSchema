@@ -4,7 +4,7 @@ import Thumbnail from './thumbnail'
 
 const Post = `
   type Post {
-    id: Int
+    ID: Int
     post_title: String
     post_content: String
     post_excerpt: String
@@ -19,6 +19,7 @@ const Post = `
     categories: [Category]
     post_meta(keys: [MetaType], after: String, first: Int, before: String, last: Int): [Postmeta]
     author: User
+    children: [Post]
   }
 `
 

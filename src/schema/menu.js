@@ -2,7 +2,7 @@ import MenuItem from './menuItem'
 
 const Menu = `
   type Menu {
-    id: ID!
+    ID: ID!
     name: String
     items: [MenuItem]
   }

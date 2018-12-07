@@ -2,7 +2,7 @@ import Post from './post'
 
 const MenuItem = `
   type MenuItem {
-    id: ID!
+    ID: ID!
     linkedId: Int
     order: Int
     navitem: Post
