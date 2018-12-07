@@ -6,23 +6,23 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
       },
       category(_, { term_id, name }) {
         return Connectors.getTerm(term_id, name)
-      }, 
+      },
       posts(_, args) {
         return Connectors.getPosts(args)
       },
-      post(_, {name, id}) {
+      post(_, { name, id }) {
         return Connectors.getPost(id, name)
-      }, 
-      postmeta(_, {post_id, keys}) {
+      },
+      postmeta(_, { post_id, keys }) {
         return Connectors.getPostmeta(post_id, keys)
       },
-      menus(_, {name}) {
+      menus(_, { name }) {
         return Connectors.getMenu(name)
       },
-      user(_, {id, name}) {
-        return Connectors.getUser({id, name})
+      user(_, { id, name }) {
+        return Connectors.getUser({ id, name })
       },
-      attachments(_, {ids}) {
+      attachments(_, { ids }) {
         return Connectors.getThumbnails(ids)
       }
     },
@@ -42,7 +42,7 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         return Connectors.getPostThumbnail(post.id)
       },
       author(post) {
-        return Connectors.getUser({userId: post.post_author})
+        return Connectors.getUser({ userId: post.post_author })
       },
       categories(post) {
         return Connectors.getPostTerms(post.id)
@@ -73,7 +73,7 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
           userId: user.id
         }
         return Connectors.getPosts(a)
-      },
+      }
     }
   }
 

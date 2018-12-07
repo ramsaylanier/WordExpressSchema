@@ -3,7 +3,7 @@ import shapeThumbnail from '../shapeThumbnail'
 
 const Op = Sequelize.Op
 
-export default function (Postmeta, Post, settings) {
+export default function(Postmeta, Post, settings) {
   return function(postId) {
     return Postmeta.findOne({
       where: {
@@ -12,7 +12,7 @@ export default function (Postmeta, Post, settings) {
       }
     }).then(res => {
       if (res) {
-        const {amazonS3} = settings.publicSettings
+        const { amazonS3 } = settings.publicSettings
         const metaKeys = amazonS3 ? ['amazonS3_info'] : ['_wp_attached_file']
         metaKeys.push('_wp_attachment_metadata')
 
@@ -29,7 +29,7 @@ export default function (Postmeta, Post, settings) {
             },
             limit: 2
           }
-        }).then( post => {
+        }).then(post => {
           return shapeThumbnail(post, settings)
         })
       }
