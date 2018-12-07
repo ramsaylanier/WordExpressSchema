@@ -1,35 +1,21 @@
 import Sequelize from 'sequelize'
+import { QueryDocumentKeys } from 'graphql/language/visitor'
 const Op = Sequelize.Op
 
-export default function(Post) {
+export default Post => {
   return function({ post_type, order, limit = 10, skip = 0, userId }) {
-    const orderBy = order
-      ? [order.orderBy, order.direction]
-      : ['menu_order', 'ASC']
-    const where = {
-      post_status: 'publish',
-      post_type: {
-        [Op.in]: ['post']
-      }
-    }
+    const postTypes = post_type || ['post']
+    const postAuthor = userId || null
+    const orderBy = order ? order.orderBy : 'menu_order'
 
-    if (post_type) {
-      where.post_type = {
-        [Op.in]: post_type
-      }
-    }
-
-    if (userId) {
-      where.post_author = userId
-    }
-
-    return Post.findAll({
-      where: where,
-      order: [orderBy],
-      limit: limit,
-      offset: skip
-    }).then(r => {
-      return r
-    })
+    return Post.query()
+      .where('post_status', 'publish')
+      .whereIn('post_type', postTypes)
+      .modify(queryBuilder => {
+        postAuthor && queryBuilder.where('post_author', postAuthor)
+      })
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(skip)
   }
 }

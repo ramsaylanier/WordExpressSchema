@@ -1,13 +1,9 @@
 import { Model } from 'objection'
 
-export default function(connection, prefix) {
-  Model.knex(connection)
-
-  class Person extends Model {
+export default function(prefix) {
+  class Post extends Model {
     static tableName = `${prefix}posts`
   }
-
-  const string = 'string'
 
   // return Conn.define(prefix + 'posts', {
   //   id: { type: Sequelize.INTEGER, primaryKey: true},
@@ -22,4 +18,5 @@ export default function(connection, prefix) {
   //   post_parent: { type: Sequelize.INTEGER},
   //   menu_order: { type: Sequelize.INTEGER}
   // })
+  return Post
 }

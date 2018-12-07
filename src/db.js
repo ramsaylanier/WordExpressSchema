@@ -1,5 +1,6 @@
 // import Sequelize from 'sequelize'
 import knex from 'knex'
+import { Model } from 'objection'
 
 // MODELS
 import PostModel from './modules/Post/model'
@@ -42,32 +43,17 @@ export default class WordExpressDatabase {
         user: username
       }
     })
-
-    // const Conn = new Sequelize(
-    //   name,
-    //   username,
-    //   password,
-    //   {
-    //     logging: false,
-    //     dialect: 'mysql',
-    //     host: host,
-    //     port: port || 3306,
-    //     define: {
-    //       timestamps: false,
-    //       freezeTableName: true,
-    //     }
-    //   }
-    // )
-
     return connection
   }
 
   getModels() {
     const prefix = this.settings.privateSettings.wp_prefix
-    const Conn = this.connection
+    Model.knex(this.connection)
+
+    const Post = PostModel(prefix)
 
     return {
-      Post: PostModel(Conn, prefix)
+      Post
       // Postmeta: PostmetaModel(Conn, prefix),
       // User: UserModel(Conn, prefix),
       // Terms: TermModel(Conn, prefix),
