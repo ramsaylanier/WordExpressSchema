@@ -1,7 +1,7 @@
 import getTerm from './getTerm'
 
-export default function({ Terms }) {
-  return {
-    getTerm: getTerm(Terms)
-  }
-}
+const termConnectors = ({ Terms }) => ({
+  getTerm: getTerm(Terms)
+})
+
+export default termConnectors

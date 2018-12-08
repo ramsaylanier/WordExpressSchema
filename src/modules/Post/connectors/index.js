@@ -11,10 +11,10 @@ const postConnectors = (
 ) => ({
   getPost: getPost(Post),
   getPosts: getPosts(Post),
-  getPostChildren: getPostChildren(Post)
-  // getPostTerms: getPostTerms(Terms, TermRelationships, settings),
-  // getTermPosts: getTermPosts(TermRelationships, Post, settings),
-  // getPostLayout: getPostLayout(Postmeta)
+  getPostChildren: getPostChildren(Post),
+  getPostLayout: getPostLayout(Postmeta),
+  getPostTerms: getPostTerms(Post, Terms, TermRelationships, settings),
+  getTermPosts: getTermPosts(TermRelationships, Post, settings)
 })
 
 export default postConnectors

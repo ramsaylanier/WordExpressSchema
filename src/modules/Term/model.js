@@ -1,30 +1,13 @@
-import Sequelize from 'sequelize'
+import { Model } from 'objection'
 
-const TermModel = (Conn, prefix) => {
-  return Conn.define(prefix + 'terms', {
-    term_id: { type: Sequelize.INTEGER, primaryKey: true },
-    name: { type: Sequelize.STRING },
-    slug: { type: Sequelize.STRING },
-    term_group: { type: Sequelize.INTEGER }
-  })
-}
+const TermRelationshipModel = prefix =>
+  class TermRelationshipModel extends Model {
+    static tableName = `${prefix}term_relationships`
+  }
 
-const TermRelationshipModel = (Conn, prefix) => {
-  return Conn.define(prefix + 'term_relationships', {
-    object_id: { type: Sequelize.INTEGER, primaryKey: true },
-    term_taxonomy_id: { type: Sequelize.INTEGER },
-    term_order: { type: Sequelize.INTEGER }
-  })
-}
+const TermTaxonomyModel = prefix =>
+  class TermTaxonomyModel extends Model {
+    static tableName = `${prefix}term_taxonomy`
+  }
 
-const TermTaxonomyModel = (Conn, prefix) => {
-  return Conn.define(prefix + 'term_taxonomy', {
-    term_taxonomy_id: { type: Sequelize.INTEGER, primaryKey: true },
-    term_id: { type: Sequelize.INTEGER },
-    taxonomy: { type: Sequelize.STRING },
-    parent: { type: Sequelize.INTEGER },
-    count: { type: Sequelize.INTEGER }
-  })
-}
-
-export { TermModel, TermRelationshipModel, TermTaxonomyModel }
+export { TermRelationshipModel, TermTaxonomyModel }

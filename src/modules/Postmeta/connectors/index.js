@@ -1,7 +1,7 @@
 import getPostmeta from './getPostmeta'
 
-export default function({ Postmeta }) {
-  return {
-    getPostmeta: getPostmeta(Postmeta)
-  }
-}
+const postmetaConnectors = ({ Postmeta }) => ({
+  getPostmeta: getPostmeta(Postmeta)
+})
+
+export default postmetaConnectors

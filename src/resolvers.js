@@ -33,19 +33,19 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
     },
     Post: {
       layout(post) {
-        return Connectors.getPostLayout(post.id)
+        return Connectors.getPostLayout(post.ID)
       },
       post_meta(post, keys) {
-        return Connectors.getPostmeta(post.id, keys)
+        return Connectors.getPostmeta(post.ID, keys)
       },
       thumbnail(post) {
-        return Connectors.getPostThumbnail(post.id)
+        return Connectors.getPostThumbnail(post.ID)
       },
       author(post) {
         return Connectors.getUser({ userId: post.post_author })
       },
       categories(post) {
-        return Connectors.getPostTerms(post.id)
+        return Connectors.getPostTerms(post.ID)
       },
       children(post) {
         return Connectors.getPostChildren(post)
