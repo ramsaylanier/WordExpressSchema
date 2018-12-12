@@ -70,7 +70,7 @@ export default class WordExpressDatabase {
 
   getConnectors() {
     const models = this.getModels()
-    // const { Post, Postmeta, Terms, TermRelationships } = models
+    const { Post, Postmeta, Terms, TermRelationships } = models
     // const { Post } = models
 
     // Terms.hasMany(TermRelationships,  {foreignKey: 'term_taxonomy_id'})

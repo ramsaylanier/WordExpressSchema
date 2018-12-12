@@ -14,7 +14,7 @@ const postConnectors = (
   getPostChildren: getPostChildren(Post),
   getPostLayout: getPostLayout(Postmeta),
   getPostTerms: getPostTerms(Post, Terms, TermRelationships, settings),
-  getTermPosts: getTermPosts(TermRelationships, Post, settings)
+  getTermPosts: getTermPosts(Terms, Post, settings)
 })
 
 export default postConnectors

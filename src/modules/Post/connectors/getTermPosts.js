@@ -1,32 +1,27 @@
 import { map } from 'lodash'
+import { QueryBuilder } from 'objection'
 
-export default function(TermRelationships, Post, settings) {
+const getTermPosts = (Terms, Post, settings) => async (
+  categoryId,
+  { post_type, limit = 10, skip = 0, order, userId }
+) => {
   const { wp_prefix } = settings.privateSettings
+  const orderBy = order
+    ? [order.orderBy, order.direction]
+    : ['post_date', 'DESC']
 
-  return function(termId, { post_type, order, limit = 10, skip = 0 }) {
-    const orderBy = order
-      ? [Post, order.orderBy, order.direction]
-      : [Post, 'post_date', 'DESC']
-    return TermRelationships.findAll({
-      attributes: [],
-      include: [
-        {
-          model: Post,
-          where: {
-            post_type: post_type,
-            post_status: 'publish'
-          }
-        }
-      ],
-      where: {
-        term_taxonomy_id: termId
-      },
-      order: [orderBy],
-      limit: limit,
-      offset: skip
-    }).then(posts => {
-      const p = map(posts, post => post[`${wp_prefix}post`])
-      return p
+  const term = await Terms.query()
+    .where('term_id', categoryId)
+    .first()
+
+  return term
+    .$relatedQuery('posts')
+    .modify(QueryBuilder => {
+      post_type && QueryBuilder.where('post_type', post_type)
     })
-  }
+    .limit(limit)
+    .offset(skip)
+    .orderBy(...orderBy)
 }
+
+export default getTermPosts
