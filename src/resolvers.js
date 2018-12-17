@@ -56,19 +56,6 @@ export default function WordExpressResolvers(Connectors, publicSettings) {
         return Connectors.getPost(postmeta.meta_value)
       }
     },
-    Menu: {
-      items(menu) {
-        return menu.items
-      }
-    },
-    MenuItem: {
-      navitem(menuItem) {
-        return Connectors.getPost(menuItem.linkedId)
-      },
-      children(menuItem) {
-        return menuItem.children
-      }
-    },
     User: {
       posts(user, args) {
         const a = {
