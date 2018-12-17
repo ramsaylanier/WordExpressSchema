@@ -1,17 +1,7 @@
-export default function(User) {
-  return function({ userId, name }) {
-    let where = {}
+const getUser = User => ({ id, name }) =>
+  User.query().modify(queryBuilder => {
+    id && queryBuilder.where('ID', id)
+    name && queryBuilder.where('user_nicename', name).first()
+  })
 
-    if (userId) {
-      where.ID = userId
-    }
-
-    if (name) {
-      where.user_nicename = name
-    }
-
-    return User.findOne({
-      where: where
-    })
-  }
-}
+export default getUser

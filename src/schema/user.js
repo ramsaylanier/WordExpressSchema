@@ -1,6 +1,6 @@
 const User = `
   type User {
-    id: Int
+    ID: Int
     user_nicename: String
     user_email: String
     user_registered: String
