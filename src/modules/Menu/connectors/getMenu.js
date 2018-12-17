@@ -2,10 +2,7 @@ import filter from 'lodash/fp/filter'
 import find from 'lodash/fp/find'
 import { flowAsync } from '../../../util'
 
-const getMenuItemsFromTerm = term => {
-  console.log(term)
-  return term.$relatedQuery('posts')
-}
+const getMenuItemsFromTerm = term => term.$relatedQuery('posts')
 
 const getValueFromKey = key => meta =>
   find(i => i.meta_key === key, meta).meta_value
@@ -53,7 +50,7 @@ const getMenu = ({ Post, Postmeta, Terms }) => async name => {
     shapeItems(Postmeta)(Post),
     attachChildrenToParents,
     getRootParents
-  )(name)
+  )(term)
 
   return {
     ID: term.term_id,
